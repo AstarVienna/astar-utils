@@ -54,8 +54,8 @@ class NestedMapping(MutableMapping):
             key_chunks = self._split_subkey(key)
             entry = self.dic
             for chunk in key_chunks:
-                if not isinstance(entry, Mapping):
-                    raise KeyError(key)
+                self._guard_submapping(
+                    entry, key_chunks[:key_chunks.index(chunk)], "get")
                 try:
                     entry = entry[chunk]
                 except KeyError as err:
@@ -83,9 +83,12 @@ class NestedMapping(MutableMapping):
             *key_chunks, final_key = self._split_subkey(key)
             entry = self.dic
             for chunk in key_chunks:
-                if not isinstance(entry, Mapping):
-                    raise KeyError(key)
-                entry = entry[chunk]
+                self._guard_submapping(
+                    entry, key_chunks[:key_chunks.index(chunk)], "del")
+                try:
+                    entry = entry[chunk]
+                except KeyError as err:
+                    raise KeyError(key) from err
             self._guard_submapping(entry, key_chunks, "del")
             del entry[final_key]
         else:
@@ -102,8 +105,9 @@ class NestedMapping(MutableMapping):
         return f"!{key.strip('!')}.{subkey}" if key is not None else subkey
 
     @staticmethod
-    def _guard_submapping(entry, key_chunks, kind: str = "set") -> None:
-        kinds = {"set": "overwritten with a new sub-mapping",
+    def _guard_submapping(entry, key_chunks, kind: str = "get") -> None:
+        kinds = {"get": "retrieved from like a dict",
+                 "set": "overwritten with a new sub-mapping",
                  "del": "be deleted from"}
         submsg = kinds.get(kind, "modified")
         if not isinstance(entry, Mapping):

@@ -90,7 +90,7 @@ class TestActsLikeDict:
             nested_nestmap[key]
         assert key in str(excinfo.value)
 
-    @pytest.mark.parametrize("key", ["bogus", "!foo.bogus"])
+    @pytest.mark.parametrize("key", ["bogus", "!foo.bogus", "!yeet.x.l.m"])
     def test_throws_when_deleting_nonexisting_key(self, key, nested_nestmap):
         with pytest.raises(KeyError) as excinfo:
             del nested_nestmap[key]
