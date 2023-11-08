@@ -13,4 +13,4 @@ on:
 
 jobs:
   call-tests:
-    uses: AstarVienna/DevOps/.github/workflows/tests.yml@main
+    uses: AstarVienna/DevOps/.github/workflows/tests.yml@master

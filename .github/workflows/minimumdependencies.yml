@@ -20,4 +20,4 @@ on:
 
 jobs:
   call-minimum-dependencies:
-    uses: AstarVienna/DevOps/.github/workflows/minimumdependencies.yml@main
+    uses: AstarVienna/DevOps/.github/workflows/minimumdependencies.yml@master
