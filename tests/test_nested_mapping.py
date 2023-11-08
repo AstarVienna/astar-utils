@@ -41,14 +41,18 @@ class TestInit:
         assert isinstance(NestedMapping(), NestedMapping)
 
     def test_initalises_with_normal_dict(self):
-        nestmap = NestedMapping({"a": 1})
+        nestmap = NestedMapping({"a": 1, "b": 2})
+        assert isinstance(nestmap, NestedMapping)
+
+    def test_initalises_with_list_of_tuples(self):
+        nestmap = NestedMapping([("a", 1), ("b", 2)])
         assert isinstance(nestmap, NestedMapping)
 
     def test_initalises_with_basic_yaml_dict(self, basic_nestmap):
         assert isinstance(basic_nestmap, NestedMapping)
         assert "OBS" in basic_nestmap.dic
 
-    def test_initalises_with_nested_yaml_dict(self, nested_nestmap):
+    def test_initalises_with_nested_dict(self, nested_nestmap):
         assert isinstance(nested_nestmap, NestedMapping)
         assert "moo" in nested_nestmap.dic
 
@@ -79,10 +83,26 @@ class TestActsLikeDict:
         assert "foo" not in nested_nestmap
 
     def test_can_delete_nested_key(self, nested_nestmap):
-        assert nested_nestmap["!bar.bogus.b"] == 69
-        del nested_nestmap["!bar.bogus.b"]
-        with pytest.raises(KeyError):
-            nested_nestmap["!bar.bogus.b"]
+        key = "!bar.bogus.b"
+        assert nested_nestmap[key] == 69
+        del nested_nestmap[key]
+        with pytest.raises(KeyError) as excinfo:
+            nested_nestmap[key]
+        assert key in str(excinfo.value)
+
+    @pytest.mark.parametrize("key", ["bogus", "!foo.bogus", "!yeet.x.l.m"])
+    def test_throws_when_deleting_nonexisting_key(self, key, nested_nestmap):
+        with pytest.raises(KeyError) as excinfo:
+            del nested_nestmap[key]
+        if key.startswith("!"):
+            assert "deleted from" in str(excinfo.value)
+        else:
+            assert key in str(excinfo.value)
+
+    def test_throws_when_setting_value_to_subdict(self, nested_nestmap):
+        with pytest.raises(KeyError) as excinfo:
+            nested_nestmap["!foo.bogus"] = 3
+        assert "overwritten with" in str(excinfo.value)
 
 
 class TestRecursiveUpdate:
@@ -99,6 +119,11 @@ class TestRecursiveUpdate:
         basic_nestmap.update(basic_yaml)
         assert basic_nestmap["!OBS.temperature"] == 42
         assert basic_nestmap["OBS"]["humidity"] == 0.75
+
+    def test_updates_yaml_bang_properties_dicts(self, basic_nestmap,
+                                                basic_yaml):
+        basic_nestmap.update({"!SIM.someglobal": True})
+        assert basic_nestmap["!SIM.someglobal"]
 
 
 class TestFunctionRecursiveUpdate:

@@ -4,7 +4,7 @@
 import logging
 from typing import TextIO
 from io import StringIO
-from collections.abc import Iterable, Mapping, MutableMapping
+from collections.abc import Iterable, Sequence, Mapping, MutableMapping
 
 from more_itertools import ilen
 
@@ -32,6 +32,9 @@ class NestedMapping(MutableMapping):
                                                    new_dict["properties"])
             else:
                 self.dic[alias] = new_dict["properties"]
+        elif isinstance(new_dict, Sequence):
+            # To catch list of tuples
+            self.update(dict([new_dict]))
         else:
             # Catch any bang-string properties keys
             to_pop = []
@@ -51,9 +54,12 @@ class NestedMapping(MutableMapping):
             key_chunks = self._split_subkey(key)
             entry = self.dic
             for chunk in key_chunks:
-                if not isinstance(entry, Mapping):
-                    raise KeyError(chunk)
-                entry = entry[chunk]
+                self._guard_submapping(
+                    entry, key_chunks[:key_chunks.index(chunk)], "get")
+                try:
+                    entry = entry[chunk]
+                except KeyError as err:
+                    raise KeyError(key) from err
             return entry
         return self.dic[key]
 
@@ -66,6 +72,7 @@ class NestedMapping(MutableMapping):
                 if chunk not in entry:
                     entry[chunk] = {}
                 entry = entry[chunk]
+            self._guard_submapping(entry, key_chunks, "set")
             entry[final_key] = value
         else:
             self.dic[key] = value
@@ -76,9 +83,13 @@ class NestedMapping(MutableMapping):
             *key_chunks, final_key = self._split_subkey(key)
             entry = self.dic
             for chunk in key_chunks:
-                if not isinstance(entry, Mapping):
-                    raise KeyError(chunk)
-                entry = entry[chunk]
+                self._guard_submapping(
+                    entry, key_chunks[:key_chunks.index(chunk)], "del")
+                try:
+                    entry = entry[chunk]
+                except KeyError as err:
+                    raise KeyError(key) from err
+            self._guard_submapping(entry, key_chunks, "del")
             del entry[final_key]
         else:
             del self.dic[key]
@@ -92,6 +103,20 @@ class NestedMapping(MutableMapping):
     def _join_subkey(key=None, subkey=None) -> str:
         # TODO: py39: item.removeprefix("!")
         return f"!{key.strip('!')}.{subkey}" if key is not None else subkey
+
+    @staticmethod
+    def _guard_submapping(entry, key_chunks, kind: str = "get") -> None:
+        kinds = {"get": "retrieved from like a dict",
+                 "set": "overwritten with a new sub-mapping",
+                 "del": "be deleted from"}
+        submsg = kinds.get(kind, "modified")
+        if not isinstance(entry, Mapping):
+            raise KeyError(
+                f"Bang-key '!{'.'.join(key_chunks)}' doesn't point to a sub-"
+                f"mapping but to a single value, which cannot be {submsg}. "
+                "To replace or remove the value, call ``del "
+                f"self['!{'.'.join(key_chunks)}']`` first and then optionally "
+                "re-assign a new sub-mapping to the key.")
 
     def _yield_subkeys(self, key: str, value: Mapping):
         # TODO: py39: -> Iterator[str]
