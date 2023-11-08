@@ -15,7 +15,7 @@ class NestedMapping(MutableMapping):
 
     def __init__(self, new_dict: Iterable = None):
         self.dic = {}
-        if isinstance(new_dict, Mapping):
+        if isinstance(new_dict, MutableMapping):
             self.update(new_dict)
         elif isinstance(new_dict, Iterable):
             for entry in new_dict:
@@ -50,10 +50,10 @@ class NestedMapping(MutableMapping):
         if isinstance(key, str) and key.startswith("!"):
             key_chunks = self._split_subkey(key)
             entry = self.dic
-            for key in key_chunks:
+            for chunk in key_chunks:
                 if not isinstance(entry, Mapping):
-                    raise KeyError(key)
-                entry = entry[key]
+                    raise KeyError(chunk)
+                entry = entry[chunk]
             return entry
         return self.dic[key]
 
@@ -62,24 +62,23 @@ class NestedMapping(MutableMapping):
         if isinstance(key, str) and key.startswith("!"):
             *key_chunks, final_key = self._split_subkey(key)
             entry = self.dic
-            for key in key_chunks:
-                if key not in entry:
-                    entry[key] = {}
-                entry = entry[key]
+            for chunk in key_chunks:
+                if chunk not in entry:
+                    entry[chunk] = {}
+                entry = entry[chunk]
             entry[final_key] = value
         else:
             self.dic[key] = value
 
     def __delitem__(self, key: str) -> None:
         """Delete self[key]."""
-        # TODO: check this implementation with unit tests
         if isinstance(key, str) and key.startswith("!"):
             *key_chunks, final_key = self._split_subkey(key)
             entry = self.dic
-            for key in key_chunks:
+            for chunk in key_chunks:
                 if not isinstance(entry, Mapping):
-                    raise KeyError(key)
-                entry = entry[key]
+                    raise KeyError(chunk)
+                entry = entry[chunk]
             del entry[final_key]
         else:
             del self.dic[key]
@@ -94,7 +93,7 @@ class NestedMapping(MutableMapping):
         # TODO: py39: item.removeprefix("!")
         return f"!{key.strip('!')}.{subkey}" if key is not None else subkey
 
-    def _yield_subkeys(self, key: str, value: str):
+    def _yield_subkeys(self, key: str, value: Mapping):
         # TODO: py39: -> Iterator[str]
         for subkey, subvalue in value.items():
             if isinstance(subvalue, Mapping):
