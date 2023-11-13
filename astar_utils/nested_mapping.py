@@ -119,19 +119,21 @@ class NestedMapping(MutableMapping):
                 f"self['!{'.'.join(key_chunks)}']`` first and then optionally "
                 "re-assign a new sub-mapping to the key.")
 
-    def _yield_subkeys(self, key: str, value: Mapping):
-        # TODO: py39: -> Iterator[str]
+    def _staggered_items(self, key: str, value: Mapping):
+        # TODO: py39: -> Iterator[]
+        simple = []
         for subkey, subvalue in value.items():
+            new_key = self._join_subkey(key, subkey)
             if isinstance(subvalue, Mapping):
-                new_key = self._join_subkey(key, subkey)
-                yield from self._yield_subkeys(new_key, subvalue)
+                yield from self._staggered_items(new_key, subvalue)
             else:
-                yield self._join_subkey(key, subkey)
+                simple.append((new_key, subvalue))
+        yield from simple
 
     def __iter__(self):
         # TODO: py39: -> Iterator[str]
         """Implement iter(self)."""
-        yield from self._yield_subkeys(None, self.dic)
+        yield from (item[0] for item in self._staggered_items(None, self.dic))
 
     def __len__(self) -> int:
         """Return len(self)."""
