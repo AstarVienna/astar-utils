@@ -139,16 +139,41 @@ class NestedMapping(MutableMapping):
         """Return len(self)."""
         return ilen(iter(self))
 
+    @staticmethod
+    def _write_subkey(key: str, pre: str, final: bool, stream: TextIO) -> str:
+        subpre = "└─" if final else "├─"
+        newpre = pre + subpre
+        stream.write(f"{newpre}{key}: ")
+        return newpre
+
+    def _write_subitems(self, items, pre: str,
+                        stream: TextIO, nested: bool = False):
+        # TODO: py39: items: Iterable[tuple[str, Any]]
+        # TODO: py39: -> list[tuple[str, Any]]
+        n_items = len(items)
+        simple = []
+
+        for i_sub, (key, val) in enumerate(items):
+            is_super = isinstance(val, Mapping)
+            if not nested or is_super:
+                final = i_sub == n_items - 1 and not simple
+                newpre = self._write_subkey(key, pre, final, stream)
+            else:
+                simple.append((key, val))
+                continue
+
+            if nested and is_super:
+                self._write_subdict(val, stream, newpre)
+            else:
+                stream.write(f"{val}")
+
+        return simple
+
     def _write_subdict(self, subdict: Mapping, stream: TextIO,
                        pad: str = "") -> None:
         pre = pad.replace("├─", "│ ").replace("└─", "  ")
-        for i_sub, (key, val) in enumerate(subdict.items()):
-            subpre = "└─" if i_sub == len(subdict) - 1 else "├─"
-            stream.write(f"{pre}{subpre}{key}: ")
-            if isinstance(val, Mapping):
-                self._write_subdict(val, stream, pre + subpre)
-            else:
-                stream.write(f"{val}")
+        simple = self._write_subitems(subdict.items(), pre, stream, True)
+        self._write_subitems(simple, pre, stream)
 
     def write_string(self, stream: TextIO) -> None:
         """Write formatted string representation to I/O stream."""
