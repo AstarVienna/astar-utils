@@ -140,9 +140,8 @@ class NestedMapping(MutableMapping):
     def _write_subdict(self, subdict: Mapping, stream: TextIO,
                        pad: str = "") -> None:
         pre = pad.replace("├─", "│ ").replace("└─", "  ")
-        n_sub = len(subdict)
         for i_sub, (key, val) in enumerate(subdict.items()):
-            subpre = "└─" if i_sub == n_sub - 1 else "├─"
+            subpre = "└─" if i_sub == len(subdict) - 1 else "├─"
             stream.write(f"{pre}{subpre}{key}: ")
             if isinstance(val, Mapping):
                 self._write_subdict(val, stream, pre + subpre)
