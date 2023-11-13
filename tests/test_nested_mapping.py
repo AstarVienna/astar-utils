@@ -38,7 +38,9 @@ def nested_nestmap(nested_dict):
 
 class TestInit:
     def test_initialises_with_nothing(self):
-        assert isinstance(NestedMapping(), NestedMapping)
+        nestmap = NestedMapping()
+        assert isinstance(nestmap, NestedMapping)
+        assert nestmap.title == "NestedMapping"
 
     def test_initalises_with_normal_dict(self):
         nestmap = NestedMapping({"a": 1, "b": 2})
@@ -55,6 +57,10 @@ class TestInit:
     def test_initalises_with_nested_dict(self, nested_nestmap):
         assert isinstance(nested_nestmap, NestedMapping)
         assert "moo" in nested_nestmap.dic
+
+    def test_init_with_title(self, basic_yaml):
+        nestmap = NestedMapping(basic_yaml, title="MyNestMap")
+        assert nestmap.title == "MyNestMap"
 
 
 class TestActsLikeDict:
@@ -184,3 +190,7 @@ class TestRepresentation:
         desired = ["!bar.bogus.a", "!bar.bogus.b", "!bar.baz", "!yeet.x",
                    "!yeet.y", "foo", "moo"]
         assert list(nested_nestmap) == desired
+
+    def test_title_is_in_str(self, basic_yaml):
+        nestmap = NestedMapping(basic_yaml, title="MyNestMap")
+        assert "MyNestMap" in str(nestmap)

@@ -181,8 +181,7 @@ class NestedMapping(MutableMapping):
 
     def write_string(self, stream: TextIO) -> None:
         """Write formatted string representation to I/O stream."""
-        name = self._title or self.__class__.__name__
-        stream.write(f"{name} contents:")
+        stream.write(f"{self.title} contents:")
         self._write_subdict(self.dic, stream, "\n")
 
     def __repr__(self) -> str:
@@ -195,6 +194,11 @@ class NestedMapping(MutableMapping):
             self.write_string(str_stream)
             output = str_stream.getvalue()
         return output
+
+    @property
+    def title(self) -> str:
+        """Return title if set, or default to class name."""
+        return self._title or self.__class__.__name__
 
 
 def recursive_update(old_dict: MutableMapping, new_dict: Mapping) -> MutableMapping:
