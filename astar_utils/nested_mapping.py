@@ -13,8 +13,9 @@ class NestedMapping(MutableMapping):
     # TODO: improve docstring
     """Dictionary-like structure that supports nested !-bang string keys."""
 
-    def __init__(self, new_dict: Iterable = None):
+    def __init__(self, new_dict: Iterable = None, title: str = None):
         self.dic = {}
+        self._title = title
         if isinstance(new_dict, MutableMapping):
             self.update(new_dict)
         elif isinstance(new_dict, Iterable):
@@ -150,7 +151,8 @@ class NestedMapping(MutableMapping):
 
     def write_string(self, stream: TextIO) -> None:
         """Write formatted string representation to I/O stream."""
-        stream.write(f"{self.__class__.__name__} contents:")
+        name = self._title or self.__class__.__name__
+        stream.write(f"{name} contents:")
         self._write_subdict(self.dic, stream, "\n")
 
     def __repr__(self) -> str:
