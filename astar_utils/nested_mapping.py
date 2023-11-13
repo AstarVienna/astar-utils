@@ -120,7 +120,7 @@ class NestedMapping(MutableMapping):
                 "re-assign a new sub-mapping to the key.")
 
     def _staggered_items(self, key: str, value: Mapping):
-        # TODO: py39: -> Iterator[]
+        # TODO: py39: -> Iterator[tuple[str, Any]]
         simple = []
         for subkey, subvalue in value.items():
             new_key = self._join_subkey(key, subkey)
@@ -150,6 +150,7 @@ class NestedMapping(MutableMapping):
                         stream: TextIO, nested: bool = False):
         # TODO: py39: items: Iterable[tuple[str, Any]]
         # TODO: py39: -> list[tuple[str, Any]]
+        # TODO: could this (and _write_subdict) use _staggered_items instead??
         n_items = len(items)
         simple = []
 
