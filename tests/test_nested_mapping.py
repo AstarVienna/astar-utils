@@ -166,9 +166,9 @@ class TestFunctionRecursiveUpdate:
 
 class TestRepresentation:
     def test_str_conversion(self, nested_nestmap):
-        desired = ("NestedMapping contents:\n├─foo: 5\n├─bar: \n│ ├─bogus: "
-                   "\n│ │ ├─a: 42\n│ │ └─b: 69\n│ └─baz: meh\n├─moo: "
-                   "yolo\n└─yeet: \n  ├─x: 0\n  └─y: 420")
+        desired = ("NestedMapping contents:\n├─bar: \n│ ├─bogus: \n│ │ ├─a: "
+                   "42\n│ │ └─b: 69\n│ └─baz: meh\n├─yeet: \n│ ├─x: 0\n│ └─y: "
+                   "420\n├─foo: 5\n└─moo: yolo")
         assert str(nested_nestmap) == desired
 
     def test_repr_conversion(self, nested_nestmap):
@@ -181,6 +181,6 @@ class TestRepresentation:
         assert len(nested_nestmap) == 7
 
     def test_list_returns_keys(self, nested_nestmap):
-        desired = ["foo", "!bar.bogus.a", "!bar.bogus.b", "!bar.baz", "moo",
-                   "!yeet.x", "!yeet.y"]
+        desired = ["!bar.bogus.a", "!bar.bogus.b", "!bar.baz", "!yeet.x",
+                   "!yeet.y", "foo", "moo"]
         assert list(nested_nestmap) == desired
