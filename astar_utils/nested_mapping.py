@@ -41,6 +41,9 @@ class NestedMapping(MutableMapping):
             to_pop = []
             for key in new_dict:
                 if key.startswith("!"):
+                    logging.warning(
+                        "Using bang-strings in KEYS is deprecated and will no "
+                        "longer work in future releases: %s", key)
                     self[key] = new_dict[key]
                     to_pop.append(key)
             for key in to_pop:
