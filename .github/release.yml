@@ -6,8 +6,8 @@ changelog:
     - title: New Features or Improvements
       labels:
         - enhancement
-      exclude:
-        labels:
+      #exclude:
+        #labels:
           # - API
     - title: Dependency Changes
       labels:
