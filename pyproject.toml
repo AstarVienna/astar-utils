@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "astar-utils"
-version = "0.1.0"
+version = "0.1.1a0"
 description = ""
 authors = ["Fabian Haberhauer <fabian.haberhauer@univie.ac.at>"]
 readme = "README.md"
