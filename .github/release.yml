@@ -1,0 +1,26 @@
+changelog:
+  categories:
+    - title: API Changes
+      labels:
+        - API
+    - title: New Features or Improvements
+      labels:
+        - enhancement
+      exclude:
+        labels:
+          # - API
+    - title: Dependency Changes
+      labels:
+        - dependencies
+    - title: Documentation Improvements
+      labels:
+        - documentation
+      exclude:
+        labels:
+          - API
+          - enhencement
+          - dependencies
+    - title: Other Changes
+      labels:
+        - "*"
+        
