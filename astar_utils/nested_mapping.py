@@ -13,8 +13,9 @@ class NestedMapping(MutableMapping):
     # TODO: improve docstring
     """Dictionary-like structure that supports nested !-bang string keys."""
 
-    def __init__(self, new_dict: Iterable = None):
+    def __init__(self, new_dict: Iterable = None, title: str = None):
         self.dic = {}
+        self._title = title
         if isinstance(new_dict, MutableMapping):
             self.update(new_dict)
         elif isinstance(new_dict, Iterable):
@@ -40,6 +41,9 @@ class NestedMapping(MutableMapping):
             to_pop = []
             for key in new_dict:
                 if key.startswith("!"):
+                    logging.warning(
+                        "Using bang-strings in KEYS is deprecated and will no "
+                        "longer work in future releases: %s", key)
                     self[key] = new_dict[key]
                     to_pop.append(key)
             for key in to_pop:
@@ -118,39 +122,66 @@ class NestedMapping(MutableMapping):
                 f"self['!{'.'.join(key_chunks)}']`` first and then optionally "
                 "re-assign a new sub-mapping to the key.")
 
-    def _yield_subkeys(self, key: str, value: Mapping):
-        # TODO: py39: -> Iterator[str]
+    def _staggered_items(self, key: str, value: Mapping):
+        # TODO: py39: -> Iterator[tuple[str, Any]]
+        simple = []
         for subkey, subvalue in value.items():
+            new_key = self._join_subkey(key, subkey)
             if isinstance(subvalue, Mapping):
-                new_key = self._join_subkey(key, subkey)
-                yield from self._yield_subkeys(new_key, subvalue)
+                yield from self._staggered_items(new_key, subvalue)
             else:
-                yield self._join_subkey(key, subkey)
+                simple.append((new_key, subvalue))
+        yield from simple
 
     def __iter__(self):
         # TODO: py39: -> Iterator[str]
         """Implement iter(self)."""
-        yield from self._yield_subkeys(None, self.dic)
+        yield from (item[0] for item in self._staggered_items(None, self.dic))
 
     def __len__(self) -> int:
         """Return len(self)."""
         return ilen(iter(self))
 
-    def _write_subdict(self, subdict: Mapping, stream: TextIO,
-                       pad: str = "") -> None:
-        pre = pad.replace("├─", "│ ").replace("└─", "  ")
-        n_sub = len(subdict)
-        for i_sub, (key, val) in enumerate(subdict.items()):
-            subpre = "└─" if i_sub == n_sub - 1 else "├─"
-            stream.write(f"{pre}{subpre}{key}: ")
-            if isinstance(val, Mapping):
-                self._write_subdict(val, stream, pre + subpre)
+    @staticmethod
+    def _write_subkey(key: str, pre: str, final: bool, stream: TextIO) -> str:
+        subpre = "└─" if final else "├─"
+        newpre = pre + subpre
+        stream.write(f"{newpre}{key}: ")
+        return newpre
+
+    def _write_subitems(self, items, pre: str,
+                        stream: TextIO, nested: bool = False):
+        # TODO: py39: items: Iterable[tuple[str, Any]]
+        # TODO: py39: -> list[tuple[str, Any]]
+        # TODO: could this (and _write_subdict) use _staggered_items instead??
+        n_items = len(items)
+        simple = []
+
+        for i_sub, (key, val) in enumerate(items):
+            is_super = isinstance(val, Mapping)
+            if not nested or is_super:
+                final = i_sub == n_items - 1 and not simple
+                newpre = self._write_subkey(key, pre, final, stream)
+            else:
+                simple.append((key, val))
+                continue
+
+            if nested and is_super:
+                self._write_subdict(val, stream, newpre)
             else:
                 stream.write(f"{val}")
 
+        return simple
+
+    def _write_subdict(self, subdict: Mapping, stream: TextIO,
+                       pad: str = "") -> None:
+        pre = pad.replace("├─", "│ ").replace("└─", "  ")
+        simple = self._write_subitems(subdict.items(), pre, stream, True)
+        self._write_subitems(simple, pre, stream)
+
     def write_string(self, stream: TextIO) -> None:
         """Write formatted string representation to I/O stream."""
-        stream.write(f"{self.__class__.__name__} contents:")
+        stream.write(f"{self.title} contents:")
         self._write_subdict(self.dic, stream, "\n")
 
     def __repr__(self) -> str:
@@ -163,6 +194,11 @@ class NestedMapping(MutableMapping):
             self.write_string(str_stream)
             output = str_stream.getvalue()
         return output
+
+    @property
+    def title(self) -> str:
+        """Return title if set, or default to class name."""
+        return self._title or self.__class__.__name__
 
 
 def recursive_update(old_dict: MutableMapping, new_dict: Mapping) -> MutableMapping:

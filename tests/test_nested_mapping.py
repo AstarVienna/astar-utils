@@ -38,7 +38,9 @@ def nested_nestmap(nested_dict):
 
 class TestInit:
     def test_initialises_with_nothing(self):
-        assert isinstance(NestedMapping(), NestedMapping)
+        nestmap = NestedMapping()
+        assert isinstance(nestmap, NestedMapping)
+        assert nestmap.title == "NestedMapping"
 
     def test_initalises_with_normal_dict(self):
         nestmap = NestedMapping({"a": 1, "b": 2})
@@ -55,6 +57,10 @@ class TestInit:
     def test_initalises_with_nested_dict(self, nested_nestmap):
         assert isinstance(nested_nestmap, NestedMapping)
         assert "moo" in nested_nestmap.dic
+
+    def test_init_with_title(self, basic_yaml):
+        nestmap = NestedMapping(basic_yaml, title="MyNestMap")
+        assert nestmap.title == "MyNestMap"
 
 
 class TestActsLikeDict:
@@ -166,9 +172,19 @@ class TestFunctionRecursiveUpdate:
 
 class TestRepresentation:
     def test_str_conversion(self, nested_nestmap):
-        desired = ("NestedMapping contents:\n├─foo: 5\n├─bar: \n│ ├─bogus: "
-                   "\n│ │ ├─a: 42\n│ │ └─b: 69\n│ └─baz: meh\n├─moo: "
-                   "yolo\n└─yeet: \n  ├─x: 0\n  └─y: 420")
+        desired = """
+NestedMapping contents:
+├─bar: 
+│ ├─bogus: 
+│ │ ├─a: 42
+│ │ └─b: 69
+│ └─baz: meh
+├─yeet: 
+│ ├─x: 0
+│ └─y: 420
+├─foo: 5
+└─moo: yolo
+""".strip()
         assert str(nested_nestmap) == desired
 
     def test_repr_conversion(self, nested_nestmap):
@@ -181,6 +197,10 @@ class TestRepresentation:
         assert len(nested_nestmap) == 7
 
     def test_list_returns_keys(self, nested_nestmap):
-        desired = ["foo", "!bar.bogus.a", "!bar.bogus.b", "!bar.baz", "moo",
-                   "!yeet.x", "!yeet.y"]
+        desired = ["!bar.bogus.a", "!bar.bogus.b", "!bar.baz", "!yeet.x",
+                   "!yeet.y", "foo", "moo"]
         assert list(nested_nestmap) == desired
+
+    def test_title_is_in_str(self, basic_yaml):
+        nestmap = NestedMapping(basic_yaml, title="MyNestMap")
+        assert "MyNestMap" in str(nestmap)
