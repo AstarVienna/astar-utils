@@ -36,8 +36,10 @@ jobs:
       - name: Store current Version
         id: current-version
         run: |
+          echo "$(poetry version)"
+          echo poetry version
           echo "CURRENT_VERSION=$(poetry version --short)" >> $GITHUB_OUTPUT
 
       - name: Bump package Version using Poetry
-        run: echo steps.current-version.outputs.CURRENT_VERSION
+        run: echo "${{ steps.current-version.outputs.CURRENT_VERSION }}"
         # run: poetry version ${{ github.event.inputs.rule }}
