@@ -5,30 +5,27 @@ on:
       - published
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false  # TODO: do we need this here?
-      matrix:
-        # TODO: why do we need matrix here, if we do at all?
-        # os: [ubuntu-latest, macos-latest, windows-latest]
-        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        os: [ubuntu-latest]
-        python-version: ["3.11"]
-        poetry-version: ["1.7.0"]
-    runs-on: ${{ matrix.os }}
+  release:
+    name: Build and publish package
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Run image
+          python-version: "3.11"
+
+      - name: Set up Poetry
         uses: abatilo/actions-poetry@v2
         with:
-          poetry-version: ${{ matrix.poetry-version }}
-      - name: Publish
+          poetry-version: "1.7.0"
+
+      - name: Build project for distribution
+        run: poetry build
+
+      - name: Publish to PyPI
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry publish --build
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+        run: poetry publish

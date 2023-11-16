@@ -1,0 +1,43 @@
+name: Bump package version
+on:
+  workflow_dispatch:
+    inputs:
+      rule:
+        type: choice
+        description: Version bump level
+        options:
+        - major
+        - minor
+        - patch
+        - premajor
+        - preminor
+        - prepatch
+        - prerelease
+        - "prerelease --next-phase"
+
+jobs:
+  bump:
+    name: Bump version number
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: "1.7.0"
+
+      - name: Store current Version
+        id: current-version
+        run: |
+          echo "CURRENT_VERSION=$(poetry version --short)" >> $GITHUB_OUTPUT
+
+      - name: Bump package Version using Poetry
+        run: echo steps.current-version.outputs.CURRENT_VERSION
+        # run: poetry version ${{ github.event.inputs.rule }}
