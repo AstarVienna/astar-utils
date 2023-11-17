@@ -2,9 +2,13 @@ name: Bump package version
 on:
   workflow_dispatch:
     inputs:
+      dry-run:
+        type: boolean
+        description: Only output new version number, no actual change.
       rule:
         type: choice
         description: Version bump level
+        required: true
         options:
         - major
         - minor
@@ -40,7 +44,8 @@ jobs:
         id: bumping
         env:
           RULE: ${{ github.event.inputs.rule }}
-        run: echo "BUMP_MSG=$(poetry version $RULE)" >> $GITHUB_OUTPUT
+          DRY: ${{ github.event.inputs.dry-run == 'true' && '--dry-run' }}
+        run: echo "BUMP_MSG=$(poetry version $DRY $RULE)" >> $GITHUB_OUTPUT
 
       - name: Output debug msg
         env:
