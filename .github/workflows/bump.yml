@@ -44,16 +44,18 @@ jobs:
         id: bumping
         env:
           RULE: ${{ github.event.inputs.rule }}
-          DRY: ${{ github.event.inputs.dry-run == 'true' && '--dry-run' }}
+          DRY: ${{ github.event.inputs.dry-run == 'true' && '--dry-run' || '' }}
         run: echo "BUMP_MSG=$(poetry version $DRY $RULE)" >> $GITHUB_OUTPUT
 
       - name: Output debug msg
+        if: github.event.inputs.dry-run == 'true'
         env:
           BUMP_MSG: ${{ steps.bumping.outputs.BUMP_MSG }}
         run: echo "$BUMP_MSG"
 
       - name: Commit changes
         # could also use https://github.com/stefanzweifel/git-auto-commit-action instead
+        if: github.event.inputs.dry-run == 'false'
         env:
           BUMP_MSG: ${{ steps.bumping.outputs.BUMP_MSG }}
         run: |
