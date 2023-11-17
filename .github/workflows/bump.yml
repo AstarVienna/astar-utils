@@ -61,12 +61,12 @@ jobs:
       - name: Bump package Version using Poetry
         id: bumping
         env:
-          RULE: ${{ github.event.inputs.rule }}
-          DRY: ${{ github.event.inputs.dry-run == 'true' && '--dry-run' || '' }}
+          RULE: ${{ inputs.rule }}
+          DRY: ${{ inputs.dry-run && '--dry-run' || '' }}
         run: echo "BUMP_MSG=$(poetry version $DRY $RULE)" >> $GITHUB_OUTPUT
 
       - name: Output debug msg
-        if: github.event.inputs.dry-run == 'true'
+        if: inputs.dry-run
         env:
           BUMP_MSG: ${{ steps.bumping.outputs.BUMP_MSG }}
         run: |
@@ -75,7 +75,7 @@ jobs:
 
       - name: Commit changes
         # could also use https://github.com/stefanzweifel/git-auto-commit-action instead
-        if: github.event.inputs.dry-run == 'false'
+        if: ${{ ! inputs.dry-run }}
         env:
           BUMP_MSG: ${{ steps.bumping.outputs.BUMP_MSG }}
         run: |
