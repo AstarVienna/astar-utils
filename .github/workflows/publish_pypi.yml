@@ -5,9 +5,33 @@ on:
       - published
 
 jobs:
-  release:
-    name: Build and publish package
+  build:
+    name: Build package using Poetry
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: "1.7.1"
+
+      - name: Store distribution files
+        uses: actions/upload-artifact@v3
+        with:
+          name: distribution
+          path: dist
+
+  publish:
+    name: Publish package to PyPI
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,10 +44,12 @@ jobs:
       - name: Set up Poetry
         uses: abatilo/actions-poetry@v2
         with:
-          poetry-version: "1.7.0"
+          poetry-version: "1.7.1"
 
-      - name: Build project for distribution
-        run: poetry build
+      - name: Retrieve distribution files
+        uses: actions/download-artifact@v3
+        with:
+          name: distribution
 
       - name: Publish to PyPI
         env:
