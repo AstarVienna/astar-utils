@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "astar-utils"
-version = "0.1.2"
+version = "0.1.3a0"
 description = "Contains commonly-used utilities for AstarVienna's projects."
 license = "GPL-3.0-or-later"
 authors = ["Fabian Haberhauer <fabian.haberhauer@univie.ac.at>"]
