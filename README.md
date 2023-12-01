@@ -1,8 +1,11 @@
 # Astar Utils
 
 [![Tests](https://github.com/AstarVienna/astar-utils/actions/workflows/tests.yml/badge.svg)](https://github.com/AstarVienna/astar-utils/actions/workflows/tests.yml)
+[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
+![dev version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAstarVienna%2Fastar-utils%2Fmain%2Fpyproject.toml&query=%24.tool.poetry.version&label=dev%20version&color=teal)
+
 [![codecov](https://codecov.io/gh/AstarVienna/astar-utils/graph/badge.svg)](https://codecov.io/gh/AstarVienna/astar-utils)
-![PyPI - Version](https://img.shields.io/pypi/v/astar-utils)
+[![PyPI - Version](https://img.shields.io/pypi/v/astar-utils)](https://pypi.org/project/astar-utils/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/astar-utils)
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
