@@ -1,4 +1,7 @@
 changelog:
+  exclude:
+    labels:
+      - "no release notes"
   categories:
     - title: API Changes
       labels:
