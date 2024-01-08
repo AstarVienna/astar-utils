@@ -30,6 +30,11 @@ on:
         type: string
         description: Version bump level
         required: true
+      branch:
+        type: string
+        description: Branch (ref) to checkout and push changes to
+        required: false
+        default: ${{ github.ref_name }}
     outputs:
       bumpmsg:
         description: Message created by the version bump.
@@ -46,7 +51,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -56,7 +63,7 @@ jobs:
       - name: Set up Poetry
         uses: abatilo/actions-poetry@v2
         with:
-          poetry-version: "1.7.0"
+          poetry-version: "1.7.1"
 
       - name: Bump package Version using Poetry
         id: bumping
