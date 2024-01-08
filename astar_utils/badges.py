@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Everything to do with report badges and more."""
+"""Everything to do with report badges and more.
+
+Currently only used in IRDB, but has possible applications elsewhere.
+"""
 
 from pathlib import Path
 from typing import TextIO
@@ -133,10 +136,8 @@ class MsgOnlyBadge(StrBadge):
     pattern = Template("[![](https://img.shields.io/badge/$key-$col)]()")
 
     def __init__(self, key: str, value: str):
-        # value = value.removeprefix("!")
-        # TODO: for Python 3.8 support:
-        value = value[1:]
-        super().__init__(key, value)
+        # TODO: py39: value.removeprefix("!")
+        super().__init__(key, value[1:])
 
 
 class BadgeReport(NestedMapping):
