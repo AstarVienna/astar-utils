@@ -18,6 +18,9 @@ The package currently contains the following public functions and classes:
 
 - `NestedMapping`: a `dict`-like structure supporting !-style nested keys.
 - `UniqueList`: a `list`-like structure with no duplicate elements and some convenient methods.
+- `Badge` and subclasses: a family of custom markdown report badges. See docstring for details.
+- `BadgeReport`: context manager for collection and generation of report badges. See docstring for details and usage.
+- `get_logger()`: convenience function to get (or create) a logger with given `name` as a child of the universal `astar` logger.
 
 ## Dependencies
 
