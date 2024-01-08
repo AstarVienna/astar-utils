@@ -33,6 +33,10 @@ class TestBadgeSubclasses:
     def test_msgonly(self):
         assert isinstance(Badge("bogus", "!foo"), MsgOnlyBadge)
 
+    def test_raises_for_invalid(self):
+        with pytest.raises(TypeError):
+            Badge("foo", [2, 3])
+
 
 class TestColours:
     @pytest.mark.parametrize("value, colour", [
@@ -123,6 +127,10 @@ class TestReport:
         assert "## foo" in markdown
         badge = "[![](https://img.shields.io/badge/bar-bogus-lightgrey)]()"
         assert badge in markdown
+
+    def test_inits_dir_if_missing(self):
+        report = BadgeReport()
+        assert report.yamlpath.parts[-2] == "_REPORTS"
 
 
 class TestMakeEntries:
