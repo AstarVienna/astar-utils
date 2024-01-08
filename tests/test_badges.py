@@ -130,4 +130,16 @@ class TestMakeEntries:
         dic = {"a": {"foo": 1, "bar": 2, "baz": {"x": "a", "y": "b"}}}
         with StringIO() as str_stream:
             make_entries(str_stream, dic)
-            assert "### Baz\n* " in str_stream.getvalue()
+            output = str_stream.getvalue()
+
+        assert "## a\n" in output
+        assert "### Baz\n* " in output
+
+    def test_very_nested(self):
+        dic = {"a": {"b": {"c": {"d": {"e": "f"}}}}}
+        with StringIO() as str_stream:
+            make_entries(str_stream, dic)
+            output = str_stream.getvalue()
+
+        assert "## a\n### B\n#### C\n  * d: \n    * " in output
+        assert "e-f" in output
