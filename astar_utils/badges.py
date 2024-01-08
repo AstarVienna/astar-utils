@@ -118,7 +118,7 @@ class StrBadge(Badge):
         "found": "green",
         "not_found": "red",
         "none": "yellowgreen",
-        }
+    }
 
     def __init__(self, key: str, value: str):
         super().__init__(key, value)
@@ -199,12 +199,13 @@ class BadgeReport(NestedMapping):
         List of logging.LogRecord objects to be saved to `logs_filename`.
     """
 
-    def __init__(self,
-            filename: str = "badges.yaml",
-            report_filename: str = "badges.md",
-            logs_filename: str = "badge_report_log.txt",
-            save_logs: bool = True,
-        ):
+    def __init__(
+        self,
+        filename: str = "badges.yaml",
+        report_filename: str = "badges.md",
+        logs_filename: str = "badge_report_log.txt",
+        save_logs: bool = True,
+    ):
         logging.debug("REPORT INIT")
         base_path = Path(PKG_DIR, "_REPORTS")
 
