@@ -303,13 +303,25 @@ def make_entries(stream: TextIO, entry, level=0) -> None:
     if not isinstance(entry, Mapping):
         return
 
+    nest_key = ""
     for key, value in entry.items():
+        if nest_key and key.startswith(f"!{nest_key}"):
+            # avoid duplication
+            continue
+
         stream.write("\n")
         stream.write("  " * (level - 2))
+
         if isinstance(value, Mapping):
             stream.write(_get_nested_header(key, level))
             # recursive
             make_entries(stream, value, level=level+1)
+        elif key.startswith("!"):
+            # TODO: py39: .removeprefix("!")
+            nest_key = key[1:].split(".", maxsplit=1)[0]
+            stream.write(_get_nested_header(nest_key, level))
+            # recursive
+            make_entries(stream, entry[nest_key], level=level+1)
         else:
             if level > 1:
                 stream.write("* ")

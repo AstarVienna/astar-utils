@@ -126,6 +126,11 @@ class TestReport:
 
 
 class TestMakeEntries:
+    def test_does_nothing_if_not_mapping(self):
+        with StringIO() as str_stream:
+            make_entries(str_stream, "foo")
+            assert str_stream.getvalue() == ""
+
     def test_nested(self):
         dic = {"a": {"foo": 1, "bar": 2, "baz": {"x": "a", "y": "b"}}}
         with StringIO() as str_stream:
@@ -143,3 +148,19 @@ class TestMakeEntries:
 
         assert "## a\n### B\n#### C\n  * d: \n    * " in output
         assert "e-f" in output
+
+    @pytest.mark.parametrize("dic", [
+        {"a": {"foo": 1, "bar": 2}},
+        {"a": {"baz": {"x": "a", "y": "b"}, "foo": 1, "bar": 2},
+         "b": {"x": 42}, "bogus": "yeet"},
+    ])
+    def test_works_with_nested_mapping(self, dic):
+        with StringIO() as str_stream:
+            make_entries(str_stream, dic)
+            output1 = str_stream.getvalue()
+
+        with StringIO() as str_stream:
+            make_entries(str_stream, NestedMapping(dic))
+            output2 = str_stream.getvalue()
+
+        assert output2 == output1
