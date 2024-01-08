@@ -7,7 +7,7 @@ import yaml
 import pytest
 
 from astar_utils.badges import (BadgeReport, Badge, BoolBadge, NumBadge,
-                                StrBadge, MsgOnlyBadge)
+                                StrBadge, MsgOnlyBadge, make_entries)
 from astar_utils.nested_mapping import NestedMapping
 
 
@@ -123,3 +123,11 @@ class TestReport:
         assert "## foo" in markdown
         badge = "[![](https://img.shields.io/badge/bar-bogus-lightgrey)]()"
         assert badge in markdown
+
+
+class TestMakeEntries:
+    def test_nested(self):
+        dic = {"a": {"foo": 1, "bar": 2, "baz": {"x": "a", "y": "b"}}}
+        with StringIO() as str_stream:
+            make_entries(str_stream, dic)
+            assert "### Baz\n* " in str_stream.getvalue()
