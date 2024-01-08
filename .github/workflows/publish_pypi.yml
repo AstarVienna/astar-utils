@@ -22,8 +22,11 @@ jobs:
         with:
           poetry-version: "1.7.1"
 
+      - name: Create step summary
+        run: echo "## Building $(poetry version)" >> $GITHUB_STEP_SUMMARY
+
       - name: Build package
-        run: poetry build
+        run: echo "$(poetry build)" >> $GITHUB_STEP_SUMMARY
 
       - name: Store distribution files
         uses: actions/upload-artifact@v3
@@ -36,6 +39,10 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: dist/*
+
+      - name: Add to step summary
+        if: ${{ success() }}
+        run: echo "### Successfully built package" >> $GITHUB_STEP_SUMMARY
 
   publish:
     name: Publish package to PyPI
@@ -56,6 +63,9 @@ jobs:
         with:
           poetry-version: "1.7.1"
 
+      - name: Create step summary
+        run: echo "## Publishing $(poetry version) to PyPI" >> $GITHUB_STEP_SUMMARY
+
       - name: Retrieve distribution files
         uses: actions/download-artifact@v3
         with:
@@ -65,7 +75,7 @@ jobs:
       - name: Publish to PyPI
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-        run: poetry publish
+        run: echo "$(poetry publish)" >> $GITHUB_STEP_SUMMARY
 
   bump:
     name: Bump to (next) dev version
