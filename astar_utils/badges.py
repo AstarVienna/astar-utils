@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Everything to do with report badges and more."""
 
-import logging
 from pathlib import Path
 from typing import TextIO
 from numbers import Number
@@ -12,6 +11,9 @@ from collections.abc import Mapping
 import yaml
 
 from .nested_mapping import NestedMapping
+from .loggers import get_logger
+
+logger = get_logger(__name__)
 
 
 def _fix_badge_str(badge_str: str) -> str:
@@ -206,7 +208,7 @@ class BadgeReport(NestedMapping):
         logs_filename: str = "badge_report_log.txt",
         save_logs: bool = True,
     ):
-        logging.debug("REPORT INIT")
+        logger.debug("REPORT INIT")
         base_path = Path(PKG_DIR, "_REPORTS")
 
         self.filename = filename
@@ -222,7 +224,7 @@ class BadgeReport(NestedMapping):
         super().__init__()
 
     def __enter__(self):
-        logging.debug("REPORT ENTER")
+        logger.debug("REPORT ENTER")
         # try:
         #     # TODO: WHY do we actually load this first? It caused some issues
         #     #       with 'old' badges that are not cleared. Is there any good
@@ -230,17 +232,17 @@ class BadgeReport(NestedMapping):
         #     with self.yamlpath.open(encoding="utf-8") as file:
         #         self.update(yaml.full_load(file))
         # except FileNotFoundError:
-        #     logging.warning("%s not found, init empty dict", self.yamlpath)
-        logging.debug("Init emtpy dict.")
+        #     logger.warning("%s not found, init empty dict", self.yamlpath)
+        logger.debug("Init emtpy dict.")
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        logging.debug("REPORT EXIT")
+        logger.debug("REPORT EXIT")
         self.write_yaml()
         self.generate_report()
         if self.save_logs:
             self.write_logs()
-        logging.debug("REPORT DONE")
+        logger.debug("REPORT DONE")
 
     def write_logs(self) -> None:
         """Dump logs to file (`logs_filename`)."""
@@ -263,9 +265,9 @@ class BadgeReport(NestedMapping):
     def generate_report(self) -> None:
         """Write markdown badge report to `report_filename`."""
         if not self.report_path.suffix == ".md":
-            logging.warning(("Expected '.md' suffix for report file name, but "
-                             "found %s. Report file might not be readable."),
-                            self.report_path.suffix)
+            logger.warning(
+                "Expected '.md' suffix for report file name, but found %s. "
+                "Report file might not be readable.", self.report_path.suffix)
         with self.report_path.open("w", encoding="utf-8") as file:
             file.write(self._make_preamble())
             make_entries(file, self.dic)

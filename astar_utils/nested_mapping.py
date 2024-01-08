@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 """Contains NestedMapping class."""
 
-import logging
 from typing import TextIO
 from io import StringIO
 from collections.abc import Iterable, Sequence, Mapping, MutableMapping
 
 from more_itertools import ilen
+
+from .loggers import get_logger
+
+logger = get_logger(__name__)
 
 
 class NestedMapping(MutableMapping):
@@ -41,7 +44,7 @@ class NestedMapping(MutableMapping):
             to_pop = []
             for key in new_dict:
                 if key.startswith("!"):
-                    logging.warning(
+                    logger.warning(
                         "Using bang-strings in KEYS is deprecated and will no "
                         "longer work in future releases: %s", key)
                     self[key] = new_dict[key]
@@ -210,13 +213,13 @@ def recursive_update(old_dict: MutableMapping, new_dict: Mapping) -> MutableMapp
                         old_dict[key] = recursive_update(old_dict[key],
                                                          new_dict[key])
                     else:
-                        logging.warning("Overwriting dict: %s with non-dict: %s",
-                                        old_dict[key], new_dict[key])
+                        logger.warning("Overwriting dict %s with non-dict: %s",
+                                       old_dict[key], new_dict[key])
                         old_dict[key] = new_dict[key]
                 else:
                     if isinstance(new_dict[key], Mapping):
-                        logging.warning("Overwriting non-dict: %s with dict: %s",
-                                        old_dict[key], new_dict[key])
+                        logger.warning("Overwriting non-dict %s with dict: %s",
+                                       old_dict[key], new_dict[key])
                     old_dict[key] = new_dict[key]
             else:
                 old_dict[key] = new_dict[key]
