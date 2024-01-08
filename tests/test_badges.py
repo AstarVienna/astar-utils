@@ -2,7 +2,6 @@
 """Unit tests for badges.py."""
 
 from io import StringIO
-from unittest import mock
 
 import yaml
 import pytest
@@ -91,36 +90,36 @@ class TestReport:
 
     @pytest.mark.usefixtures("temp_dir")
     def test_writes_yaml(self, temp_dir):
-        with mock.patch("irdb.badges.PKG_DIR", temp_dir):
-            with BadgeReport("test.yaml", "test.md") as report:
-                report["!foo.bar"] = "bogus"
-            assert (temp_dir / "_REPORTS/test.yaml").exists()
+        path = temp_dir / "_REPORTS"
+        with BadgeReport("test.yaml", "test.md", base_path=path) as report:
+            report["!foo.bar"] = "bogus"
+        assert (temp_dir / "_REPORTS/test.yaml").exists()
 
     @pytest.mark.usefixtures("temp_dir")
     def test_writes_md(self, temp_dir):
-        with mock.patch("irdb.badges.PKG_DIR", temp_dir):
-            with BadgeReport("test.yaml", "test.md") as report:
-                report["!foo.bar"] = "bogus"
-            assert (temp_dir / "_REPORTS/test.md").exists()
+        path = temp_dir / "_REPORTS"
+        with BadgeReport("test.yaml", "test.md", base_path=path) as report:
+            report["!foo.bar"] = "bogus"
+        assert (temp_dir / "_REPORTS/test.md").exists()
 
     @pytest.mark.usefixtures("temp_dir")
     def test_yaml_content(self, temp_dir):
-        with mock.patch("irdb.badges.PKG_DIR", temp_dir):
-            with BadgeReport("test.yaml", "test.md") as report:
-                report["!foo.bar"] = "bogus"
-            path = temp_dir / "_REPORTS/test.yaml"
-            with path.open(encoding="utf-8") as file:
-                dic = NestedMapping(yaml.full_load(file))
-                assert "!foo.bar" in dic
-                assert dic["!foo.bar"] == "bogus"
+        path = temp_dir / "_REPORTS"
+        with BadgeReport("test.yaml", "test.md", base_path=path) as report:
+            report["!foo.bar"] = "bogus"
+        path = temp_dir / "_REPORTS/test.yaml"
+        with path.open(encoding="utf-8") as file:
+            dic = NestedMapping(yaml.full_load(file))
+            assert "!foo.bar" in dic
+            assert dic["!foo.bar"] == "bogus"
 
     @pytest.mark.usefixtures("temp_dir")
     def test_md_content(self, temp_dir):
-        with mock.patch("irdb.badges.PKG_DIR", temp_dir):
-            with BadgeReport("test.yaml", "test.md") as report:
-                report["!foo.bar"] = "bogus"
-            path = temp_dir / "_REPORTS/test.md"
-            markdown = path.read_text(encoding="utf-8")
-            assert "## foo" in markdown
-            badge = "[![](https://img.shields.io/badge/bar-bogus-lightgrey)]()"
-            assert badge in markdown
+        path = temp_dir / "_REPORTS"
+        with BadgeReport("test.yaml", "test.md", base_path=path) as report:
+            report["!foo.bar"] = "bogus"
+        file = path / "test.md"
+        markdown = file.read_text(encoding="utf-8")
+        assert "## foo" in markdown
+        badge = "[![](https://img.shields.io/badge/bar-bogus-lightgrey)]()"
+        assert badge in markdown
