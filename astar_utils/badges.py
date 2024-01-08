@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import TextIO
 from numbers import Number
 from string import Template
-from datetime import datetime as dt
 from collections.abc import Mapping
 
 import yaml
@@ -21,7 +20,7 @@ def _fix_badge_str(badge_str: str) -> str:
     return badge_str.replace(" ", "_").replace("-", "--")
 
 
-class Badge():
+class Badge:
     """Base class for markdown report badges.
 
     Based on the type and (in case of strings) value of the parameter `value`,
@@ -68,6 +67,7 @@ class Badge():
     colour = "lightgrey"
 
     def __new__(cls, key: str, value):
+        """Override creation to create subclasses."""
         if isinstance(value, bool):
             return super().__new__(BoolBadge)
         if isinstance(value, Number):
@@ -188,6 +188,8 @@ class BadgeReport(NestedMapping):
         Name for log file. The default is "badge_report_log.txt".
     save_logs : bool, optional
         Whether to output logs. The default is True.
+    base_path: Path, optional
+        Directory to use for reports. Defaults to ./_REPORTS.
 
     Attributes
     ----------
@@ -207,9 +209,14 @@ class BadgeReport(NestedMapping):
         report_filename: str = "badges.md",
         logs_filename: str = "badge_report_log.txt",
         save_logs: bool = True,
+        base_path=None,
     ):
         logger.debug("REPORT INIT")
-        base_path = Path(PKG_DIR, "_REPORTS")
+        if base_path is not None:
+            base_path = Path(base_path)
+        else:
+            base_path = Path("./_REPORTS")
+            logger.debug("base_path not set, using %s", base_path.absolute())
 
         self.filename = filename
         self.yamlpath = base_path / self.filename
@@ -224,19 +231,12 @@ class BadgeReport(NestedMapping):
         super().__init__()
 
     def __enter__(self):
+        """Context manager __enter__."""
         logger.debug("REPORT ENTER")
-        # try:
-        #     # TODO: WHY do we actually load this first? It caused some issues
-        #     #       with 'old' badges that are not cleared. Is there any good
-        #     #       reason at all to load the previous yaml file???
-        #     with self.yamlpath.open(encoding="utf-8") as file:
-        #         self.update(yaml.full_load(file))
-        # except FileNotFoundError:
-        #     logger.warning("%s not found, init empty dict", self.yamlpath)
-        logger.debug("Init emtpy dict.")
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Context manager __exit__."""
         logger.debug("REPORT EXIT")
         self.write_yaml()
         self.generate_report()
@@ -256,10 +256,11 @@ class BadgeReport(NestedMapping):
         self.yamlpath.write_text(dumpstr, encoding="utf-8")
 
     def _make_preamble(self) -> str:
-        preamble = ("# IRDB Packages Report\n\n"
-                    f"**Created on UTC {dt.utcnow():%Y-%m-%d %H:%M:%S}**\n\n"
-                    "For details on errors and conflicts, see badge report "
-                    "log file in this directory.\n\n")
+        preamble = (
+            "# IRDB Packages Report\n\n"
+            "For details on errors and conflicts, see badge report log file "
+            "in this directory.\n\n"
+        )
         return preamble
 
     def generate_report(self) -> None:
