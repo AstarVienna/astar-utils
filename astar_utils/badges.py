@@ -26,6 +26,10 @@ def _fix_badge_str(badge_str: str) -> str:
 class Badge:
     """Base class for markdown report badges.
 
+    Originally created for package status reports in the
+    `IRDB <https://github.com/AstarVienna/irdb>`_, but future applications
+    outside this is explicitly intended.
+
     Based on the type and (in case of strings) value of the parameter `value`,
     the appropriate subclass is returned, which also deals with the colour of
     the badge. These subclasses should *not* be instantiated directly, but
@@ -110,6 +114,12 @@ class NumBadge(Badge):
 
 class StrBadge(Badge):
     """Key-value Badge for string values, colour based on special strings."""
+
+    # TODO: Special strings such as "observation", "support" and to some ectent
+    #       also "missing", "incomplete", "found" and "not_found" are specific
+    #       to the IRDB. Perhaps introduce a way to exent the special strings
+    #       dict in a ceratin context and then remove the specific values from
+    #       here and only keep general ones such as "error", "warning", "ok"...
 
     special_strings = {
         "observation": "blueviolet",
