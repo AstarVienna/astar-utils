@@ -5,7 +5,7 @@ Currently only used in IRDB, but has possible applications elsewhere.
 """
 
 from pathlib import Path
-from typing import TextIO
+from typing import TextIO, Any
 from numbers import Number
 from string import Template
 from collections.abc import Mapping
@@ -235,7 +235,7 @@ class BadgeReport(NestedMapping):
         self.report_path = base_path / self.report_name
 
         self.save_logs = save_logs
-        self.logs = []
+        self.logs: list[Any] = []
         logs_name = logs_filename or "badge_report_log.txt"
         self.log_path = base_path / logs_name
 
