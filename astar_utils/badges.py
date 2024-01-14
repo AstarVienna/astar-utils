@@ -146,8 +146,7 @@ class MsgOnlyBadge(StrBadge):
     pattern = Template("[![](https://img.shields.io/badge/$key-$col)]()")
 
     def __init__(self, key: str, value: str):
-        # TODO: py39: value.removeprefix("!")
-        super().__init__(key, value[1:])
+        super().__init__(key, value.removeprefix("!"))
 
 
 class BadgeReport(NestedMapping):
@@ -327,8 +326,7 @@ def make_entries(stream: TextIO, entry, level=0) -> None:
             # recursive
             make_entries(stream, value, level=level+1)
         elif key.startswith("!"):
-            # TODO: py39: .removeprefix("!")
-            nest_key = key[1:].split(".", maxsplit=1)[0]
+            nest_key = key.removeprefix("!").split(".", maxsplit=1)[0]
             stream.write(_get_nested_header(nest_key, level))
             # recursive
             make_entries(stream, entry[nest_key], level=level+1)

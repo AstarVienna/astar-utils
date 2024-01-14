@@ -105,13 +105,11 @@ class NestedMapping(MutableMapping):
 
     @staticmethod
     def _split_subkey(key: str):
-        # TODO: py39: item.removeprefix("!")
-        return key[1:].split(".")
+        return key.removeprefix("!").split(".")
 
     @staticmethod
     def _join_subkey(key=None, subkey=None) -> str:
-        # TODO: py39: item.removeprefix("!")
-        return f"!{key.strip('!')}.{subkey}" if key is not None else subkey
+        return f"!{key.removeprefix('!')}.{subkey}" if key is not None else subkey
 
     @staticmethod
     def _guard_submapping(entry, key_chunks, kind: str = "get") -> None:
