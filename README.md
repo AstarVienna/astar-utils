@@ -21,6 +21,7 @@ The package currently contains the following public functions and classes:
 - `Badge` and subclasses: a family of custom markdown report badges. See docstring for details.
 - `BadgeReport`: context manager for collection and generation of report badges. See docstring for details and usage.
 - `get_logger()`: convenience function to get (or create) a logger with given `name` as a child of the universal `astar` logger.
+- `get_astar_logger()`: convenience function to get (or create) a logger with the name `astar`, which serves as the root for all A*V packages and applications.
 
 ## Dependencies
 

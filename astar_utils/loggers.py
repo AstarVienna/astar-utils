@@ -4,6 +4,13 @@
 import logging
 
 
-def get_logger(name: str):
+
+def get_astar_logger() -> logging.Logger:
+    """Get a logger with name "astar"."""
+    return logging.getLogger("astar")
+
+
+def get_logger(name: str) -> logging.Logger:
     """Get a logger with given name as a child of the "astar" logger."""
-    return logging.getLogger("astar").getChild(name)
+    return get_astar_logger().getChild(name)
+
