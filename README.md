@@ -23,6 +23,10 @@ The package currently contains the following public functions and classes:
 - `get_logger()`: convenience function to get (or create) a logger with given `name` as a child of the universal `astar` logger.
 - `get_astar_logger()`: convenience function to get (or create) a logger with the name `astar`, which serves as the root for all A*V packages and applications.
 
+### Loggers module
+
+- `loggers.ColoredFormatter`: a subclass of `logging.Formatter` to produce colored logging messages for console output.
+
 ## Dependencies
 
 Dependencies are intentionally kept to a minimum for simplicity. Current dependencies are:
