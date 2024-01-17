@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Contains NestedMapping class."""
 
-from typing import TextIO
+from typing import TextIO, Optional, Union, Any
 from io import StringIO
-from collections.abc import Iterable, Sequence, Mapping, MutableMapping
+from collections.abc import (Iterable, Iterator, Collection, Sequence, Mapping,
+                             MutableMapping)
 
 from more_itertools import ilen
 
@@ -16,8 +17,9 @@ class NestedMapping(MutableMapping):
     # TODO: improve docstring
     """Dictionary-like structure that supports nested !-bang string keys."""
 
-    def __init__(self, new_dict: Iterable = None, title: str = None):
-        self.dic = {}
+    def __init__(self, new_dict: Optional[Iterable] = None,
+                 title: Optional[str] = None):
+        self.dic: MutableMapping[str, Any] = {}
         self._title = title
         if isinstance(new_dict, MutableMapping):
             self.update(new_dict)
@@ -25,7 +27,7 @@ class NestedMapping(MutableMapping):
             for entry in new_dict:
                 self.update(entry)
 
-    def update(self, new_dict: MutableMapping) -> None:
+    def update(self, new_dict: MutableMapping[str, Any]) -> None:
         # TODO: why do we check for dict here but not in the else?
         if isinstance(new_dict, Mapping) \
                 and "alias" in new_dict \
@@ -103,13 +105,11 @@ class NestedMapping(MutableMapping):
 
     @staticmethod
     def _split_subkey(key: str):
-        # TODO: py39: item.removeprefix("!")
-        return key[1:].split(".")
+        return key.removeprefix("!").split(".")
 
     @staticmethod
     def _join_subkey(key=None, subkey=None) -> str:
-        # TODO: py39: item.removeprefix("!")
-        return f"!{key.strip('!')}.{subkey}" if key is not None else subkey
+        return f"!{key.removeprefix('!')}.{subkey}" if key is not None else subkey
 
     @staticmethod
     def _guard_submapping(entry, key_chunks, kind: str = "get") -> None:
@@ -125,8 +125,8 @@ class NestedMapping(MutableMapping):
                 f"self['!{'.'.join(key_chunks)}']`` first and then optionally "
                 "re-assign a new sub-mapping to the key.")
 
-    def _staggered_items(self, key: str, value: Mapping):
-        # TODO: py39: -> Iterator[tuple[str, Any]]
+    def _staggered_items(self, key: Union[str, None],
+                         value: Mapping) -> Iterator[tuple[str, Any]]:
         simple = []
         for subkey, subvalue in value.items():
             new_key = self._join_subkey(key, subkey)
@@ -136,8 +136,7 @@ class NestedMapping(MutableMapping):
                 simple.append((new_key, subvalue))
         yield from simple
 
-    def __iter__(self):
-        # TODO: py39: -> Iterator[str]
+    def __iter__(self) -> Iterator[str]:
         """Implement iter(self)."""
         yield from (item[0] for item in self._staggered_items(None, self.dic))
 
@@ -152,13 +151,12 @@ class NestedMapping(MutableMapping):
         stream.write(f"{newpre}{key}: ")
         return newpre
 
-    def _write_subitems(self, items, pre: str,
-                        stream: TextIO, nested: bool = False):
-        # TODO: py39: items: Iterable[tuple[str, Any]]
-        # TODO: py39: -> list[tuple[str, Any]]
+    def _write_subitems(self, items: Collection[tuple[str, Any]], pre: str,
+                        stream: TextIO, nested: bool = False
+                        ) -> list[tuple[str, Any]]:
         # TODO: could this (and _write_subdict) use _staggered_items instead??
         n_items = len(items)
-        simple = []
+        simple: list[tuple[str, Any]] = []
 
         for i_sub, (key, val) in enumerate(items):
             is_super = isinstance(val, Mapping)
