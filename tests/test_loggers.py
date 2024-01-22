@@ -76,19 +76,34 @@ class TestColoredFormatter:
         for value in colf.colors.values():
             assert value.startswith("\x1b[")
 
-    def test_colors_are_in_log_msg(self, base_logger, child_logger, caplog):
+    @pytest.mark.parametrize("level",
+                             ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"])
+    def test_colors_are_in_log_msg(self, level, base_logger,
+                                   child_logger, caplog):
         with StringIO() as str_stream:
-            handler = logging.StreamHandler(stream=str_stream)
-            handler.setFormatter(ColoredFormatter())
-            base_logger.addHandler(handler)
+            # need string stream handler to capture color codes
+            handler1 = logging.StreamHandler(stream=str_stream)
+            handler2 = logging.StreamHandler()  # sys.stdout
+            handler1.setFormatter(ColoredFormatter())
+            handler2.setFormatter(ColoredFormatter())
+            handler1.setLevel(logging.DEBUG)
+            handler2.setLevel(logging.DEBUG)
+            base_logger.addHandler(handler1)
+            base_logger.addHandler(handler2)
             base_logger.propagate = True
-            child_logger.error("foo")
+            base_logger.setLevel(logging.DEBUG)
+
+            int_level = logging.getLevelNamesMapping()[level]
+            print(f"\nTest logging level: {level}:")
+            child_logger.log(int_level, "foo")
 
             # release the handler to avoid I/O on closed stream errors
-            base_logger.removeHandler(handler)
-            del handler
+            base_logger.removeHandler(handler1)
+            base_logger.removeHandler(handler2)
+            del handler1
+            del handler2
 
-            assert "ERROR" in caplog.text
+            assert level in caplog.text
             assert "foo" in caplog.text
             assert "astar.test" in caplog.text
 
