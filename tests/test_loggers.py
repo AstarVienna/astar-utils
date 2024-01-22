@@ -93,7 +93,7 @@ class TestColoredFormatter:
             base_logger.propagate = True
             base_logger.setLevel(logging.DEBUG)
 
-            int_level = logging.getLevelNamesMapping()[level]
+            int_level = logging.getLevelName(level)
             print(f"\nTest logging level: {level}:")
             child_logger.log(int_level, "foo")
 
