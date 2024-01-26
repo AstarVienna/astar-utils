@@ -36,9 +36,9 @@ class ColoredFormatter(logging.Formatter):
     """
 
     colors = {
-        logging.DEBUG: Fore.CYAN,  # Fore.BLUE,
+        logging.DEBUG: Fore.CYAN,
         logging.INFO: Fore.GREEN,
-        logging.WARNING: Fore.MAGENTA,  # Fore.CYAN,
+        logging.WARNING: Fore.MAGENTA,
         logging.ERROR: Fore.RED,
         logging.CRITICAL: Fore.YELLOW + Back.RED
     }
@@ -67,7 +67,3 @@ class ColoredFormatter(logging.Formatter):
         """Override `logging.Formatter.formatMessage()`."""
         log_fmt = self._get_fmt(record.levelno)
         return log_fmt % record.__dict__
-
-    # Could maybe add bug_report here somehow?
-    # def formatException(self, ei):
-    #     return super().formatException(ei) + "\n\nextra text"
