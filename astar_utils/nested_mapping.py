@@ -28,6 +28,9 @@ class NestedMapping(MutableMapping):
                 self.update(entry)
 
     def update(self, new_dict: MutableMapping[str, Any]) -> None:
+        if isinstance(new_dict, self.__class__):
+            new_dict = new_dict.dic  # Avoid updating with another one
+
         # TODO: why do we check for dict here but not in the else?
         if isinstance(new_dict, Mapping) \
                 and "alias" in new_dict \
