@@ -28,6 +28,9 @@ class NestedMapping(MutableMapping):
                 self.update(entry)
 
     def update(self, new_dict: MutableMapping[str, Any]) -> None:
+        if isinstance(new_dict, NestedMapping):
+            new_dict = new_dict.dic  # Avoid updating with another one
+
         # TODO: why do we check for dict here but not in the else?
         if isinstance(new_dict, Mapping) \
                 and "alias" in new_dict \
@@ -46,9 +49,9 @@ class NestedMapping(MutableMapping):
             to_pop = []
             for key in new_dict:
                 if key.startswith("!"):
-                    logger.warning(
-                        "Using bang-strings in KEYS is deprecated and will no "
-                        "longer work in future releases: %s", key)
+                    logger.debug(
+                        "Bang-string key %s was seen in .update. This should "
+                        "not occur outside mocking in testing!", key)
                     self[key] = new_dict[key]
                     to_pop.append(key)
             for key in to_pop:
