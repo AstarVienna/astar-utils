@@ -209,6 +209,17 @@ class NestedMapping(MutableMapping):
         return self._title or self.__class__.__name__
 
 
+class RecursiveNestedMapping(NestedMapping):
+    """Like NestedMapping but internally resolves any bang-string values."""
+
+    def __getitem__(self, key: str):
+        """x.__getitem__(y) <==> x[y]."""
+        value = super().__getitem__(key)
+        while is_bangkey(value):
+            value = self[value]
+        return value
+
+
 def is_bangkey(key) -> bool:
     """Return ``True`` if the key is a ``str`` and starts with a "!"."""
     return isinstance(key, str) and key.startswith("!")
