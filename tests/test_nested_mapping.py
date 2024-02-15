@@ -4,7 +4,9 @@
 import pytest
 import yaml
 
-from astar_utils.nested_mapping import NestedMapping, recursive_update
+from astar_utils.nested_mapping import (NestedMapping, RecursiveNestedMapping,
+                                        recursive_update, is_bangkey,
+                                        is_nested_mapping)
 
 _basic_yaml = """
 alias : OBS
@@ -204,3 +206,51 @@ NestedMapping contents:
     def test_title_is_in_str(self, basic_yaml):
         nestmap = NestedMapping(basic_yaml, title="MyNestMap")
         assert "MyNestMap" in str(nestmap)
+
+
+class TestRecursiveNestedMapping:
+    def test_resolves_bangs(self):
+        rnm = RecursiveNestedMapping(
+            {"foo": {
+                "a": "!bar.x",
+                "b": "!bar.y",
+              },
+             "bar": {
+                 "x": 42,
+                 "y": "!foo.a",
+              },
+             })
+        assert rnm["!foo.b"] == 42
+
+    def test_infinite_loop(self):
+        rnm = RecursiveNestedMapping(
+            {"foo": {
+                "a": "!bar.x",
+                "b": "!bar.y",
+              },
+             "bar": {
+                 "x": "!foo.b",
+                 "y": "!foo.a",
+              },
+             })
+        with pytest.raises(RecursionError):
+            rnm["!foo.b"]
+
+
+@pytest.mark.parametrize(("key", "result"),
+                         [("!foo", True),
+                          ("bar", False),
+                          (42, False)]
+                         )
+def test_is_bangkey(key, result):
+    assert is_bangkey(key) == result
+
+
+@pytest.mark.parametrize(("mapping", "result"),
+                         [({"a": 5, "b": {"x": 2, "y": 3}}, True),
+                          ({"a": 5, "b": 7}, False),
+                          ("bogus", False),
+                          (42, False)]
+                         )
+def test_is_nested_mapping(mapping, result):
+    assert is_nested_mapping(mapping) == result
