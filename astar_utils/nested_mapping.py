@@ -72,6 +72,9 @@ class NestedMapping(MutableMapping):
                 entry = entry[chunk]
             except KeyError as err:
                 raise KeyError(key) from err
+
+        if is_nested_mapping(entry):
+            return self.__class__(entry)
         return entry
 
     def __setitem__(self, key: str, value) -> None:
@@ -209,6 +212,13 @@ class NestedMapping(MutableMapping):
 def is_bangkey(key) -> bool:
     """Return ``True`` if the key is a ``str`` and starts with a "!"."""
     return isinstance(key, str) and key.startswith("!")
+
+
+def is_nested_mapping(mapping) -> bool:
+    """Return ``True`` if `mapping` contains any further map as a value."""
+    if not isinstance(mapping, Mapping):
+        return False
+    return any(isinstance(value, Mapping) for value in mapping.values())
 
 
 def recursive_update(old_dict: MutableMapping, new_dict: Mapping) -> MutableMapping:
