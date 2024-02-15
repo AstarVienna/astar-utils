@@ -46,7 +46,7 @@ class NestedMapping(MutableMapping):
             # Catch any bang-string properties keys
             to_pop = []
             for key in new_dict:
-                if key.startswith("!"):
+                if is_bangkey(key):
                     logger.debug(
                         "Bang-string key %s was seen in .update. This should "
                         "not occur outside mocking in testing!", key)
@@ -60,49 +60,52 @@ class NestedMapping(MutableMapping):
 
     def __getitem__(self, key: str):
         """x.__getitem__(y) <==> x[y]."""
-        if isinstance(key, str) and key.startswith("!"):
-            key_chunks = self._split_subkey(key)
-            entry = self.dic
-            for chunk in key_chunks:
-                self._guard_submapping(
-                    entry, key_chunks[:key_chunks.index(chunk)], "get")
-                try:
-                    entry = entry[chunk]
-                except KeyError as err:
-                    raise KeyError(key) from err
-            return entry
-        return self.dic[key]
+        if not is_bangkey(key):
+            return self.dic[key]
+
+        key_chunks = self._split_subkey(key)
+        entry = self.dic
+        for chunk in key_chunks:
+            self._guard_submapping(
+                entry, key_chunks[:key_chunks.index(chunk)], "get")
+            try:
+                entry = entry[chunk]
+            except KeyError as err:
+                raise KeyError(key) from err
+        return entry
 
     def __setitem__(self, key: str, value) -> None:
         """Set self[key] to value."""
-        if isinstance(key, str) and key.startswith("!"):
-            *key_chunks, final_key = self._split_subkey(key)
-            entry = self.dic
-            for chunk in key_chunks:
-                if chunk not in entry:
-                    entry[chunk] = {}
-                entry = entry[chunk]
-            self._guard_submapping(entry, key_chunks, "set")
-            entry[final_key] = value
-        else:
+        if not is_bangkey(key):
             self.dic[key] = value
+            return
+
+        *key_chunks, final_key = self._split_subkey(key)
+        entry = self.dic
+        for chunk in key_chunks:
+            if chunk not in entry:
+                entry[chunk] = {}
+            entry = entry[chunk]
+        self._guard_submapping(entry, key_chunks, "set")
+        entry[final_key] = value
 
     def __delitem__(self, key: str) -> None:
         """Delete self[key]."""
-        if isinstance(key, str) and key.startswith("!"):
-            *key_chunks, final_key = self._split_subkey(key)
-            entry = self.dic
-            for chunk in key_chunks:
-                self._guard_submapping(
-                    entry, key_chunks[:key_chunks.index(chunk)], "del")
-                try:
-                    entry = entry[chunk]
-                except KeyError as err:
-                    raise KeyError(key) from err
-            self._guard_submapping(entry, key_chunks, "del")
-            del entry[final_key]
-        else:
+        if not is_bangkey(key):
             del self.dic[key]
+            return
+
+        *key_chunks, final_key = self._split_subkey(key)
+        entry = self.dic
+        for chunk in key_chunks:
+            self._guard_submapping(
+                entry, key_chunks[:key_chunks.index(chunk)], "del")
+            try:
+                entry = entry[chunk]
+            except KeyError as err:
+                raise KeyError(key) from err
+        self._guard_submapping(entry, key_chunks, "del")
+        del entry[final_key]
 
     @staticmethod
     def _split_subkey(key: str):
@@ -201,6 +204,11 @@ class NestedMapping(MutableMapping):
     def title(self) -> str:
         """Return title if set, or default to class name."""
         return self._title or self.__class__.__name__
+
+
+def is_bangkey(key) -> bool:
+    """Return ``True`` if the key is a ``str`` and starts with a "!"."""
+    return isinstance(key, str) and key.startswith("!")
 
 
 def recursive_update(old_dict: MutableMapping, new_dict: Mapping) -> MutableMapping:
