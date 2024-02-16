@@ -32,15 +32,13 @@ class NestedMapping(MutableMapping):
             new_dict = new_dict.dic  # Avoid updating with another one
 
         # TODO: why do we check for dict here but not in the else?
-        if isinstance(new_dict, Mapping) \
-                and "alias" in new_dict \
-                and "properties" in new_dict:
+        if isinstance(new_dict, Mapping) and "alias" in new_dict:
             alias = new_dict["alias"]
+            propdict = new_dict.get("properties", {})
             if alias in self.dic:
-                self.dic[alias] = recursive_update(self.dic[alias],
-                                                   new_dict["properties"])
+                self.dic[alias] = recursive_update(self.dic[alias], propdict)
             else:
-                self.dic[alias] = new_dict["properties"]
+                self.dic[alias] = propdict
         elif isinstance(new_dict, Sequence):
             # To catch list of tuples
             self.update(dict([new_dict]))
