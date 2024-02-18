@@ -5,8 +5,8 @@ import pytest
 import yaml
 
 from astar_utils.nested_mapping import (NestedMapping, RecursiveNestedMapping,
-                                        recursive_update, is_bangkey,
-                                        is_nested_mapping)
+                                        NestedChainMap, recursive_update,
+                                        is_bangkey, is_nested_mapping)
 
 _basic_yaml = """
 alias : OBS
@@ -235,6 +235,32 @@ class TestRecursiveNestedMapping:
              })
         with pytest.raises(RecursionError):
             rnm["!foo.b"]
+
+    def test_returns_unresolved_as_is(self):
+        rnm = RecursiveNestedMapping(
+            {"foo": {
+                "a": "!bar.x",
+                "b": "!bar.y",
+              },
+             })
+        assert rnm["!foo.b"] == "!bar.y"
+
+
+class TestNestedChainMap:
+    def test_resolves_bangs(self):
+        ncm = NestedChainMap(
+            RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
+            RecursiveNestedMapping({"foo": {"b": "bogus"}})
+        )
+        assert ncm["!foo.a"] == "bogus"
+
+    def test_infinite_loop(self):
+        ncm = NestedChainMap(
+            RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
+            RecursiveNestedMapping({"foo": {"b": "!foo.a"}})
+        )
+        with pytest.raises(RecursionError):
+            ncm["!foo.a"]
 
 
 @pytest.mark.parametrize(("key", "result"),

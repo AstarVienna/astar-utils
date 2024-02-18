@@ -208,16 +208,86 @@ class NestedMapping(MutableMapping):
         """Return title if set, or default to class name."""
         return self._title or self.__class__.__name__
 
+    def _repr_pretty_(self, printer, cycle):
+        """For ipython."""
+        if cycle:
+            printer.text("NestedMapping(...)")
+        else:
+            printer.text(str(self))
+
 
 class RecursiveNestedMapping(NestedMapping):
-    """Like NestedMapping but internally resolves any bang-string values."""
+    """Like NestedMapping but internally resolves any bang-string values.
+
+    In the event of an infinite loop of recursive bang-string keys pointing
+    back to each other, this should savely and quickly throw a
+    ``RecursionError``.
+    """
 
     def __getitem__(self, key: str):
         """x.__getitem__(y) <==> x[y]."""
         value = super().__getitem__(key)
         while is_bangkey(value):
+            try:
+                value = self[value]
+            except KeyError:
+                return value
+        return value
+
+    @classmethod
+    def from_maps(cls, maps, key):
+        """Yield instances from maps if key is found."""
+        for i, mapping in enumerate(maps):
+            if key in mapping:
+                # Don't use .get here to avoid chaining empty mappings
+                yield RecursiveNestedMapping(
+                    mapping[key], title=f"[{i}] mapping")
+
+
+class NestedChainMap(ChainMap):
+    """Subclass of ``collections.ChainMap`` using ``RecursiveNestedMapping``.
+
+    Only overrides ``__getitem__`` to allow for both recursive bang-string keys
+    accross the individual mappings and to "collect" sub-mappings from the same
+    bang-key in multiple mappings into a new `NestedChainMap`.
+
+    Also overrides ``__str__`` and provides a ``_repr_pretty_`` for nice output
+    to an IPython console.
+
+    In the absence of any nested mappings or bang-string keys, this will work
+    like the base class ``collections.ChainMap``, meaning an ordinary ``dict``
+    can also be used as one of the individual mappings.
+
+    In the event of an infinite loop of recursive bang-string keys pointing
+    back to each other, this should savely and quickly throw a
+    ``RecursionError``.
+    """
+
+    def __getitem__(self, key):
+        """x.__getitem__(y) <==> x[y]."""
+        value = super().__getitem__(key)
+
+        if isinstance(value, abc.Mapping):
+            submaps = tuple(RecursiveNestedMapping.from_maps(self.maps, key))
+            if len(submaps) == 1:
+                # Don't need the chain if it's just one...
+                return submaps[0]
+            return NestedChainMap(*submaps)
+
+        if is_bangkey(value):
             value = self[value]
         return value
+
+    def __str__(self):
+        """Return str(self)."""
+        return "\n\n".join(str(mapping) for mapping in self.maps)
+
+    def _repr_pretty_(self, printer, cycle):
+        """For ipython."""
+        if cycle:
+            printer.text("NestedChainMap(...)")
+        else:
+            printer.text(str(self))
 
 
 def is_bangkey(key) -> bool:
