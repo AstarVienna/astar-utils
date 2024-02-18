@@ -3,8 +3,7 @@
 
 from typing import TextIO, Optional, Union, Any
 from io import StringIO
-from collections.abc import (Iterable, Iterator, Collection, Sequence, Mapping,
-                             MutableMapping)
+from collections import abc, ChainMap
 
 from more_itertools import ilen
 
@@ -13,33 +12,33 @@ from .loggers import get_logger
 logger = get_logger(__name__)
 
 
-class NestedMapping(MutableMapping):
+class NestedMapping(abc.MutableMapping):
     # TODO: improve docstring
     """Dictionary-like structure that supports nested !-bang string keys."""
 
-    def __init__(self, new_dict: Optional[Iterable] = None,
+    def __init__(self, new_dict: Optional[abc.Iterable] = None,
                  title: Optional[str] = None):
-        self.dic: MutableMapping[str, Any] = {}
+        self.dic: abc.MutableMapping[str, Any] = {}
         self._title = title
-        if isinstance(new_dict, MutableMapping):
+        if isinstance(new_dict, abc.MutableMapping):
             self.update(new_dict)
-        elif isinstance(new_dict, Iterable):
+        elif isinstance(new_dict, abc.Iterable):
             for entry in new_dict:
                 self.update(entry)
 
-    def update(self, new_dict: MutableMapping[str, Any]) -> None:
+    def update(self, new_dict: abc.MutableMapping[str, Any]) -> None:
         if isinstance(new_dict, NestedMapping):
             new_dict = new_dict.dic  # Avoid updating with another one
 
         # TODO: why do we check for dict here but not in the else?
-        if isinstance(new_dict, Mapping) and "alias" in new_dict:
+        if isinstance(new_dict, abc.Mapping) and "alias" in new_dict:
             alias = new_dict["alias"]
             propdict = new_dict.get("properties", {})
             if alias in self.dic:
                 self.dic[alias] = recursive_update(self.dic[alias], propdict)
             else:
                 self.dic[alias] = propdict
-        elif isinstance(new_dict, Sequence):
+        elif isinstance(new_dict, abc.Sequence):
             # To catch list of tuples
             self.update(dict([new_dict]))
         else:
@@ -124,7 +123,7 @@ class NestedMapping(MutableMapping):
                  "set": "overwritten with a new sub-mapping",
                  "del": "be deleted from"}
         submsg = kinds.get(kind, "modified")
-        if not isinstance(entry, Mapping):
+        if not isinstance(entry, abc.Mapping):
             raise KeyError(
                 f"Bang-key '!{'.'.join(key_chunks)}' doesn't point to a sub-"
                 f"mapping but to a single value, which cannot be {submsg}. "
@@ -133,17 +132,17 @@ class NestedMapping(MutableMapping):
                 "re-assign a new sub-mapping to the key.")
 
     def _staggered_items(self, key: Union[str, None],
-                         value: Mapping) -> Iterator[tuple[str, Any]]:
+                         value: abc.Mapping) -> abc.Iterator[tuple[str, Any]]:
         simple = []
         for subkey, subvalue in value.items():
             new_key = self._join_subkey(key, subkey)
-            if isinstance(subvalue, Mapping):
+            if isinstance(subvalue, abc.Mapping):
                 yield from self._staggered_items(new_key, subvalue)
             else:
                 simple.append((new_key, subvalue))
         yield from simple
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> abc.Iterator[str]:
         """Implement iter(self)."""
         yield from (item[0] for item in self._staggered_items(None, self.dic))
 
@@ -158,7 +157,7 @@ class NestedMapping(MutableMapping):
         stream.write(f"{newpre}{key}: ")
         return newpre
 
-    def _write_subitems(self, items: Collection[tuple[str, Any]], pre: str,
+    def _write_subitems(self, items: abc.Collection[tuple[str, Any]], pre: str,
                         stream: TextIO, nested: bool = False
                         ) -> list[tuple[str, Any]]:
         # TODO: could this (and _write_subdict) use _staggered_items instead??
@@ -166,7 +165,7 @@ class NestedMapping(MutableMapping):
         simple: list[tuple[str, Any]] = []
 
         for i_sub, (key, val) in enumerate(items):
-            is_super = isinstance(val, Mapping)
+            is_super = isinstance(val, abc.Mapping)
             if not nested or is_super:
                 final = i_sub == n_items - 1 and not simple
                 newpre = self._write_subkey(key, pre, final, stream)
@@ -181,7 +180,7 @@ class NestedMapping(MutableMapping):
 
         return simple
 
-    def _write_subdict(self, subdict: Mapping, stream: TextIO,
+    def _write_subdict(self, subdict: abc.Mapping, stream: TextIO,
                        pad: str = "") -> None:
         pre = pad.replace("├─", "│ ").replace("└─", "  ")
         simple = self._write_subitems(subdict.items(), pre, stream, True)
@@ -297,17 +296,18 @@ def is_bangkey(key) -> bool:
 
 def is_nested_mapping(mapping) -> bool:
     """Return ``True`` if `mapping` contains any further map as a value."""
-    if not isinstance(mapping, Mapping):
+    if not isinstance(mapping, abc.Mapping):
         return False
-    return any(isinstance(value, Mapping) for value in mapping.values())
+    return any(isinstance(value, abc.Mapping) for value in mapping.values())
 
 
-def recursive_update(old_dict: MutableMapping, new_dict: Mapping) -> MutableMapping:
+def recursive_update(old_dict: abc.MutableMapping,
+                     new_dict: abc.Mapping) -> abc.MutableMapping:
     if new_dict is not None:
         for key in new_dict:
             if old_dict is not None and key in old_dict:
-                if isinstance(old_dict[key], Mapping):
-                    if isinstance(new_dict[key], Mapping):
+                if isinstance(old_dict[key], abc.Mapping):
+                    if isinstance(new_dict[key], abc.Mapping):
                         old_dict[key] = recursive_update(old_dict[key],
                                                          new_dict[key])
                     else:
@@ -315,7 +315,7 @@ def recursive_update(old_dict: MutableMapping, new_dict: Mapping) -> MutableMapp
                                        old_dict[key], new_dict[key])
                         old_dict[key] = new_dict[key]
                 else:
-                    if isinstance(new_dict[key], Mapping):
+                    if isinstance(new_dict[key], abc.Mapping):
                         logger.warning("Overwriting non-dict %s with dict: %s",
                                        old_dict[key], new_dict[key])
                     old_dict[key] = new_dict[key]
