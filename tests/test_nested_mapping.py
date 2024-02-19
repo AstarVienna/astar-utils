@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 """Unit tests for nested_mapping.py."""
 
+from unittest.mock import Mock
+
 import pytest
 import yaml
 
-from astar_utils.nested_mapping import NestedMapping, recursive_update
+from astar_utils.nested_mapping import (NestedMapping, RecursiveNestedMapping,
+                                        NestedChainMap, recursive_update,
+                                        is_bangkey, is_nested_mapping)
 
 _basic_yaml = """
 alias : OBS
@@ -34,6 +38,15 @@ def nested_dict():
 @pytest.fixture
 def nested_nestmap(nested_dict):
     return NestedMapping(nested_dict)
+
+
+@pytest.fixture
+def simple_nestchainmap():
+    ncm = NestedChainMap(
+        RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
+        RecursiveNestedMapping({"foo": {"b": "bogus", "c": "baz"}})
+    )
+    return ncm
 
 
 class TestInit:
@@ -73,6 +86,9 @@ class TestActsLikeDict:
         basic_nestmap["!OBS.lam.max.unit"] = "um"
         assert basic_nestmap["!OBS.lam.max.unit"] == "um"
         assert basic_nestmap["!OBS.temperature"] == 100
+
+    def test_returns_another_nestmap_for_subdict(self, nested_nestmap):
+        assert isinstance(nested_nestmap["!bar"], NestedMapping)
 
     def test_uses___contains___keyword_for_normal_dicts(self):
         nestmap = NestedMapping({"name": "ELT"})
@@ -204,3 +220,102 @@ NestedMapping contents:
     def test_title_is_in_str(self, basic_yaml):
         nestmap = NestedMapping(basic_yaml, title="MyNestMap")
         assert "MyNestMap" in str(nestmap)
+
+    def test_repr_pretty(self, nested_nestmap):
+        printer = Mock()
+        nested_nestmap._repr_pretty_(printer, True)
+        printer.text.assert_called_with("NestedMapping(...)")
+        nested_nestmap._repr_pretty_(printer, False)
+        printer.text.assert_called_with(str(nested_nestmap))
+
+
+class TestRecursiveNestedMapping:
+    def test_resolves_bangs(self):
+        rnm = RecursiveNestedMapping(
+            {"foo": {
+                "a": "!bar.x",
+                "b": "!bar.y",
+              },
+             "bar": {
+                 "x": 42,
+                 "y": "!foo.a",
+              },
+             })
+        assert rnm["!foo.b"] == 42
+
+    def test_infinite_loop(self):
+        rnm = RecursiveNestedMapping(
+            {"foo": {
+                "a": "!bar.x",
+                "b": "!bar.y",
+              },
+             "bar": {
+                 "x": "!foo.b",
+                 "y": "!foo.a",
+              },
+             })
+        with pytest.raises(RecursionError):
+            rnm["!foo.b"]
+
+    def test_returns_unresolved_as_is(self):
+        rnm = RecursiveNestedMapping(
+            {"foo": {
+                "a": "!bar.x",
+                "b": "!bar.y",
+              },
+             })
+        assert rnm["!foo.b"] == "!bar.y"
+
+
+class TestNestedChainMap:
+    def test_resolves_bangs(self, simple_nestchainmap):
+        assert simple_nestchainmap["!foo.a"] == "bogus"
+
+    def test_infinite_loop(self):
+        ncm = NestedChainMap(
+            RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
+            RecursiveNestedMapping({"foo": {"b": "!foo.a"}})
+        )
+        with pytest.raises(RecursionError):
+            ncm["!foo.a"]
+
+    def test_repr_pretty(self, simple_nestchainmap):
+        printer = Mock()
+        simple_nestchainmap._repr_pretty_(printer, True)
+        printer.text.assert_called_with("NestedChainMap(...)")
+        simple_nestchainmap._repr_pretty_(printer, False)
+        printer.text.assert_called_with(str(simple_nestchainmap))
+
+
+class TestNestedChainMapSubdictKeyInMultipleLevels:
+    def test_returns_chainmap_if_found_in_multiple(self, simple_nestchainmap):
+        assert isinstance(simple_nestchainmap["foo"], NestedChainMap)
+
+    def test_subdict_chainmap_has_correct_len(self, simple_nestchainmap):
+        assert len(simple_nestchainmap["foo"]) == 3
+
+    def test_returns_nestmap_if_found_in_only_one(self):
+        ncm = NestedChainMap(
+            RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
+            RecursiveNestedMapping({"bar": {"b": "bogus", "c": "baz"}})
+        )
+        assert isinstance(ncm["foo"], RecursiveNestedMapping)
+
+
+@pytest.mark.parametrize(("key", "result"),
+                         [("!foo", True),
+                          ("bar", False),
+                          (42, False)]
+                         )
+def test_is_bangkey(key, result):
+    assert is_bangkey(key) == result
+
+
+@pytest.mark.parametrize(("mapping", "result"),
+                         [({"a": 5, "b": {"x": 2, "y": 3}}, True),
+                          ({"a": 5, "b": 7}, False),
+                          ("bogus", False),
+                          (42, False)]
+                         )
+def test_is_nested_mapping(mapping, result):
+    assert is_nested_mapping(mapping) == result
