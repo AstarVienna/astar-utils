@@ -286,9 +286,20 @@ class TestNestedChainMap:
         simple_nestchainmap._repr_pretty_(printer, False)
         printer.text.assert_called_with(str(simple_nestchainmap))
 
-    def test_subdict_key_in_multiple_levels(self, simple_nestchainmap):
+
+class TestNestedChainMapSubdictKeyInMultipleLevels:
+    def test_returns_chainmap_if_found_in_multiple(self, simple_nestchainmap):
         assert isinstance(simple_nestchainmap["foo"], NestedChainMap)
+
+    def test_subdict_chainmap_has_correct_len(self, simple_nestchainmap):
         assert len(simple_nestchainmap["foo"]) == 3
+
+    def test_returns_nestmap_if_found_in_only_one(self):
+        ncm = NestedChainMap(
+            RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
+            RecursiveNestedMapping({"bar": {"b": "bogus", "c": "baz"}})
+        )
+        assert isinstance(ncm["foo"], RecursiveNestedMapping)
 
 
 @pytest.mark.parametrize(("key", "result"),
