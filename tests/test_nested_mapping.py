@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Unit tests for nested_mapping.py."""
 
+from unittest.mock import Mock
+
 import pytest
 import yaml
 
@@ -36,6 +38,15 @@ def nested_dict():
 @pytest.fixture
 def nested_nestmap(nested_dict):
     return NestedMapping(nested_dict)
+
+
+@pytest.fixture
+def simple_nestchainmap():
+    ncm = NestedChainMap(
+        RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
+        RecursiveNestedMapping({"foo": {"b": "bogus"}})
+    )
+    return ncm
 
 
 class TestInit:
@@ -75,6 +86,9 @@ class TestActsLikeDict:
         basic_nestmap["!OBS.lam.max.unit"] = "um"
         assert basic_nestmap["!OBS.lam.max.unit"] == "um"
         assert basic_nestmap["!OBS.temperature"] == 100
+
+    def test_returns_another_nestmap_for_subdict(self, nested_nestmap):
+        assert isinstance(nested_nestmap["!bar"], NestedMapping)
 
     def test_uses___contains___keyword_for_normal_dicts(self):
         nestmap = NestedMapping({"name": "ELT"})
@@ -207,6 +221,13 @@ NestedMapping contents:
         nestmap = NestedMapping(basic_yaml, title="MyNestMap")
         assert "MyNestMap" in str(nestmap)
 
+    def test_repr_pretty(self, nested_nestmap):
+        printer = Mock()
+        nested_nestmap._repr_pretty_(printer, True)
+        printer.text.assert_called_with("NestedMapping(...)")
+        nested_nestmap._repr_pretty_(printer, False)
+        printer.text.assert_called_with(str(nested_nestmap))
+
 
 class TestRecursiveNestedMapping:
     def test_resolves_bangs(self):
@@ -247,12 +268,8 @@ class TestRecursiveNestedMapping:
 
 
 class TestNestedChainMap:
-    def test_resolves_bangs(self):
-        ncm = NestedChainMap(
-            RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
-            RecursiveNestedMapping({"foo": {"b": "bogus"}})
-        )
-        assert ncm["!foo.a"] == "bogus"
+    def test_resolves_bangs(self, simple_nestchainmap):
+        assert simple_nestchainmap["!foo.a"] == "bogus"
 
     def test_infinite_loop(self):
         ncm = NestedChainMap(
@@ -261,6 +278,13 @@ class TestNestedChainMap:
         )
         with pytest.raises(RecursionError):
             ncm["!foo.a"]
+
+    def test_repr_pretty(self, simple_nestchainmap):
+        printer = Mock()
+        simple_nestchainmap._repr_pretty_(printer, True)
+        printer.text.assert_called_with("NestedChainMap(...)")
+        simple_nestchainmap._repr_pretty_(printer, False)
+        printer.text.assert_called_with(str(simple_nestchainmap))
 
 
 @pytest.mark.parametrize(("key", "result"),
