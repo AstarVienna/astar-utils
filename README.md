@@ -17,6 +17,10 @@ This package is devloped and maintained by [Astar Vienna](https://github.com/Ast
 The package currently contains the following public functions and classes:
 
 - `NestedMapping`: a `dict`-like structure supporting !-style nested keys.
+- `RecursiveNestedMapping`: a subclass of `NestedMapping` also supporting keys that reference other !-style keys.
+- `NestedChainMap`: a subclass of `collections.ChainMap` supporting instances of `RecursiveNestedMapping` as levels and referencing !-style keys across chain map levels.
+- `is_bangkey()`: simple convenience function to check if something is a !-style key.
+- `is_nested_mapping()`: convenience function to check if something is a mapping containing a least one other mapping as a value.
 - `UniqueList`: a `list`-like structure with no duplicate elements and some convenient methods.
 - `Badge` and subclasses: a family of custom markdown report badges. See docstring for details.
 - `BadgeReport`: context manager for collection and generation of report badges. See docstring for details and usage.
