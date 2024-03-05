@@ -273,9 +273,13 @@ class NestedChainMap(ChainMap):
                 return submaps[0]
             return NestedChainMap(*submaps)
 
-        if is_bangkey(value):
-            value = self[value]
+        while is_bangkey(value):
+            try:
+                value = self[value]
+            except KeyError:
+                return value
         return value
+
 
     def __str__(self):
         """Return str(self)."""
