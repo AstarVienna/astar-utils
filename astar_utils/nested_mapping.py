@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Contains NestedMapping class."""
 
-from typing import TextIO, Optional, Union, Any
+from typing import TextIO, Any
 from io import StringIO
 from collections import abc, ChainMap
 
@@ -16,8 +16,11 @@ class NestedMapping(abc.MutableMapping):
     # TODO: improve docstring
     """Dictionary-like structure that supports nested !-bang string keys."""
 
-    def __init__(self, new_dict: Optional[abc.Iterable] = None,
-                 title: Optional[str] = None):
+    def __init__(
+        self,
+        new_dict: abc.Iterable | None = None,
+        title: str | None = None,
+    ):
         self.dic: abc.MutableMapping[str, Any] = {}
         self._title = title
         if isinstance(new_dict, abc.MutableMapping):
@@ -131,8 +134,10 @@ class NestedMapping(abc.MutableMapping):
                 f"self['!{'.'.join(key_chunks)}']`` first and then optionally "
                 "re-assign a new sub-mapping to the key.")
 
-    def _staggered_items(self, key: Union[str, None],
-                         value: abc.Mapping) -> abc.Iterator[tuple[str, Any]]:
+    def _staggered_items(
+        self, key: str | None,
+        value: abc.Mapping,
+    ) -> abc.Iterator[tuple[str, Any]]:
         simple = []
         for subkey, subvalue in value.items():
             new_key = self._join_subkey(key, subkey)
@@ -157,9 +162,12 @@ class NestedMapping(abc.MutableMapping):
         stream.write(f"{newpre}{key}: ")
         return newpre
 
-    def _write_subitems(self, items: abc.Collection[tuple[str, Any]], pre: str,
-                        stream: TextIO, nested: bool = False
-                        ) -> list[tuple[str, Any]]:
+    def _write_subitems(
+        self, items: abc.Collection[tuple[str, Any]],
+        pre: str,
+        stream: TextIO,
+        nested: bool = False,
+    ) -> list[tuple[str, Any]]:
         # TODO: could this (and _write_subdict) use _staggered_items instead??
         n_items = len(items)
         simple: list[tuple[str, Any]] = []
@@ -180,8 +188,12 @@ class NestedMapping(abc.MutableMapping):
 
         return simple
 
-    def _write_subdict(self, subdict: abc.Mapping, stream: TextIO,
-                       pad: str = "") -> None:
+    def _write_subdict(
+        self,
+        subdict: abc.Mapping,
+        stream: TextIO,
+        pad: str = "",
+    ) -> None:
         pre = pad.replace("├─", "│ ").replace("└─", "  ")
         simple = self._write_subitems(subdict.items(), pre, stream, True)
         self._write_subitems(simple, pre, stream)
