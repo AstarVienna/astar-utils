@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 more-itertools = "^10.1.0"
 pyyaml = "^6.0.1"
 colorama = "^0.4.6"
