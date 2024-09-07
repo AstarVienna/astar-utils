@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "astar-utils"
-version = "0.2.3a0"
+version = "0.3.0a0"
 description = "Contains commonly-used utilities for AstarVienna's projects."
 license = "GPL-3.0-or-later"
 authors = ["Fabian Haberhauer <fabian.haberhauer@univie.ac.at>"]
@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 more-itertools = "^10.1.0"
 pyyaml = "^6.0.1"
 colorama = "^0.4.6"
