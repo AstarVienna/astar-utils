@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Contains UniqueList class."""
 
-from typing import Optional, Any
+from typing import Any
 from collections.abc import Iterable, MutableSequence
 
 
@@ -19,7 +19,7 @@ class UniqueList(MutableSequence):
     items.
     """
 
-    def __init__(self, initial: Optional[Iterable[Any]] = None):
+    def __init__(self, initial: Iterable[Any] | None = None):
         self._set: set[Any] = set()  # For uniqueness
         self._list: list[Any] = []    # For order
 
