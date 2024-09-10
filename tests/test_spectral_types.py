@@ -113,6 +113,7 @@ class TestRepresentations:
                              [("A0V", "SpectralType('A0V')"),
                               ("G2", "SpectralType('G2')"),
                               ("K9.0", "SpectralType('K9')"),
+                              ("B2.5", "SpectralType('B2.5')"),
                               ("M3.0III", "SpectralType('M3III')"),
                               ("KII", "SpectralType('KII')"),])
     def test_repr(self, ssl_cls, exptcted):
@@ -123,6 +124,7 @@ class TestRepresentations:
                              [("A0V", "A0V"),
                               ("G2", "G2"),
                               ("K9.0", "K9"),
+                              ("B2.5", "B2.5"),
                               ("M3.0III", "M3III"),
                               ("KII", "KII"),])
     def test_str(self, ssl_cls, exptcted):

@@ -6,7 +6,7 @@ from typing import ClassVar
 from dataclasses import dataclass, field, InitVar
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class SpectralType:
     r"""Parse and store stellar spectral types.
 
@@ -97,23 +97,23 @@ class SpectralType:
                     f"{self.luminosity_class or ''}")
         return spectype
 
-    def _tuple_factory(self) -> tuple[int, float]:
-        spec_cls = self._cls_order.index(self.spectral_class)
+    @property
+    def _comp_tuple(self) -> tuple[int, float]:
         # if None, assume middle of spectral class
         if self.spectral_subclass is not None:
             sub_cls = self.spectral_subclass
         else:
             sub_cls = 5
-        return (spec_cls, sub_cls)
+        return (self._cls_order.index(self.spectral_class), sub_cls)
 
     def __lt__(self, other) -> bool:
         """Return self < other."""
         if not isinstance(other, self.__class__):
             raise TypeError("Can only compare equal types.")
-        return self._tuple_factory() < other._tuple_factory()
+        return self._comp_tuple < other._comp_tuple
 
     def __le__(self, other) -> bool:
         """Return self < other."""
         if not isinstance(other, self.__class__):
             raise TypeError("Can only compare equal types.")
-        return self._tuple_factory() <= other._tuple_factory()
+        return self._comp_tuple <= other._comp_tuple
