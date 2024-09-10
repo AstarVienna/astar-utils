@@ -60,3 +60,35 @@ class TestParsesTypes:
     def test_fails_on_invalid_spec_sub_lum_cls(self, spec_sub_lum_cls):
         with pytest.raises(ValueError):
             SpectralType(spec_sub_lum_cls)
+
+
+class TestComparesTypes:
+    @pytest.mark.parametrize(("ssl_cls_a", "ssl_cls_b"),
+                             [("A0V", "A0V"), ("G2", "G2.0"),
+                              ("M3III", "M3.0III")])
+    def test_compares_classes_as_equal(self, ssl_cls_a, ssl_cls_b):
+        spt_a = SpectralType(ssl_cls_a)
+        spt_b = SpectralType(ssl_cls_b)
+        assert spt_a == spt_b
+
+
+class TestRepresentations:
+    @pytest.mark.parametrize(("ssl_cls", "exptcted"),
+                             [("A0V", "SpectralType('A0V')"),
+                              ("G2", "SpectralType('G2')"),
+                              ("K9.0", "SpectralType('K9')"),
+                              ("M3.0III", "SpectralType('M3III')"),
+                              ("KII", "SpectralType('KII')"),])
+    def test_repr(self, ssl_cls, exptcted):
+        spt = SpectralType(ssl_cls)
+        assert repr(spt) == exptcted
+
+    @pytest.mark.parametrize(("ssl_cls", "exptcted"),
+                             [("A0V", "A0V"),
+                              ("G2", "G2"),
+                              ("K9.0", "K9"),
+                              ("M3.0III", "M3III"),
+                              ("KII", "KII"),])
+    def test_str(self, ssl_cls, exptcted):
+        spt = SpectralType(ssl_cls)
+        assert str(spt) == exptcted
