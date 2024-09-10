@@ -54,6 +54,37 @@ class SpectralType:
         Numerical spectral subclass (0.0-9.9).
     luminosity_class : str or None
         Roman numeral luminosity class (I-V).
+
+    Examples
+    --------
+    >>> from astar_utils import SpectralType
+    >>> spt = SpectralType("A0V")
+    >>> spt.spectral_class
+    'A'
+
+    >>> spt.spectral_subclass
+    0.0
+
+    >>> spt.luminosity_class
+    'V'
+
+    >>> spts = [SpectralType(s) for s in
+    ...         ["G2", "M4.0", "B3", "F8", "K6.5",
+    ...          "A", "A0", "A9", "O8"]]
+    >>> sorted(spts)  # doctest: +NORMALIZE_WHITESPACE
+    [SpectralType('O8'),
+     SpectralType('B3'),
+     SpectralType('A0'),
+     SpectralType('A'),
+     SpectralType('A9'),
+     SpectralType('F8'),
+     SpectralType('G2'),
+     SpectralType('K6.5'),
+     SpectralType('M4')]
+
+    Note that a missing spectral subtype is considered as 5 (middle of the
+    main spectral class) in the context of sorting, as shown in the example
+    with the spectral type "A" ending up between "A0" and "A9".
     """
 
     spectral_class: str = field(init=False, default="")
