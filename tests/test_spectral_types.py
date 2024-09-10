@@ -2,6 +2,7 @@
 """Unit tests for spectral_types.py."""
 
 import pytest
+import operator
 
 from astar_utils import SpectralType
 
@@ -70,6 +71,41 @@ class TestComparesTypes:
         spt_a = SpectralType(ssl_cls_a)
         spt_b = SpectralType(ssl_cls_b)
         assert spt_a == spt_b
+
+    @pytest.mark.parametrize(("ssl_cls_a", "ssl_cls_b"),
+                             [("A0V", "A1V"), ("G2", "G2.5"),
+                              ("M3III", "M8.0III"), ("B3V", "BV")])
+    def test_compares_order_within_spec_cls(self, ssl_cls_a, ssl_cls_b):
+        spt_a = SpectralType(ssl_cls_a)
+        spt_b = SpectralType(ssl_cls_b)
+        assert spt_a < spt_b
+        assert spt_b > spt_a
+
+    @pytest.mark.parametrize(("ssl_cls_a", "ssl_cls_b"),
+                             [("A0V", "G1V"), ("G", "M"), ("OII", "GIV"),
+                              ("K3III", "M8.0III"), ("BV", "KI")])
+    def test_compares_order_across_spec_cls(self, ssl_cls_a, ssl_cls_b):
+        spt_a = SpectralType(ssl_cls_a)
+        spt_b = SpectralType(ssl_cls_b)
+        assert spt_a < spt_b
+        assert spt_b > spt_a
+
+    @pytest.mark.parametrize(("ssl_cls_a", "ssl_cls_b"),
+                             [("A0V", "G1V"), ("G", "M"), ("OII", "GIV"),
+                              ("K3III", "M8.0III"), ("BV", "KI"),
+                              ("A0V", "A1V"), ("G2", "G2.5"),
+                              ("M3III", "M8.0III"), ("B3V", "BV")])
+    def test_compares_order_with_equal(self, ssl_cls_a, ssl_cls_b):
+        spt_a = SpectralType(ssl_cls_a)
+        spt_b = SpectralType(ssl_cls_b)
+        assert spt_a <= spt_b
+        assert spt_b >= spt_a
+
+    @pytest.mark.parametrize("operation", [operator.gt, operator.lt,
+                                           operator.ge, operator.le])
+    def test_throws_on_invalid_compare(self, operation):
+        with pytest.raises(TypeError):
+            operation(SpectralType("A0V"), 42)
 
 
 class TestRepresentations:
