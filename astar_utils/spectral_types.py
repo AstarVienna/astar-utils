@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""."""
+"""Contains SpectralType class."""
 
 import re
 from typing import ClassVar
@@ -8,9 +8,55 @@ from dataclasses import dataclass, field, InitVar
 
 @dataclass(frozen=True)
 class SpectralType:
-    """TBA."""
+    r"""Parse and store stellar spectral types.
 
-    spectral_class: str | None = field(init=False, default=None)
+    This dataclass can understand a string constructor containing a valid
+    stellar spectral type including "OBAFGKM"-spectral class, 0-9 subclass
+    (including floats up to one decimal place) and luminosity class (roman
+    numerals I-V), which are converted to attributes. The initial spectral
+    type must match the regex "^[OBAFGKM](\d(\.\d)?)?(I{1,3}|IV|V)?$". Only the
+    main spectral class ("OBAFGKM") is mandatory, both numerical subclass and
+    luminosity class may be empty (None). Spectral subclasses (0.0-9.9) are
+    internally stored as floats, meaning an initial type of e.g. "A0V" is
+    considered identical to "A0.0V". Representations of an instance (``str``
+    and ``repr``) always show integers whenever possible, regardless of the
+    initially passed value.
+
+    Instances of this class are always "frozen", meaning they cannot be changed
+    after initial creation. It is not possible to manually assign the three
+    individual attribute, creation can only happen via the constructor string
+    described above.
+
+    One of the main features of this class (and indeed motivation for its
+    creation in the first place) is the ability to compare, and thus order,
+    instances of the class based on their two-component spectral (sub)class.
+    In this context, a "later" spectral type is considered "greater" than an
+    "earlier" one, i.e. O < B < A < F < G < K < M, which is consistent with the
+    convention of numerical subtypes, where 0 < 9 holds true. This is, however,
+    in contrast to the physical meaning of this parameter, which is correlated
+    with stellar effective temperature in reverse order, meaning T(A) > T(G)
+    and T(F0) > T(F9), by convention. On the other hand, in many visualisations
+    such as the Herzsprung-Russel diagram, it is common practice to represent
+    temperature on the x-axis in descending order, meaning a sorted list of
+    instances of this class will already have the typical order of such
+    diagrams.
+
+    In this context, the luminosity class (if any) is ignored for sorting and
+    comparison (<, >, <=, >=), as it represents a second physical dimension.
+    However, instances of this class may also be compared for equality (== and
+    !=), in which case all three attributes are considered.
+
+    Attributes
+    ----------
+    spectral_class : str
+        Main spectral class (OBAFGKM).
+    spectral_subclass : str or None
+        Numerical spectral subclass (0.0-9.9).
+    luminosity_class : str or None
+        Roman numeral luminosity class (I-V).
+    """
+
+    spectral_class: str = field(init=False, default="")
     spectral_subclass: float | None = field(init=False, default=None)
     luminosity_class: str | None = field(init=False, default=None)
     spectype: InitVar[str]
