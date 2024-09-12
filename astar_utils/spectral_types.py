@@ -140,13 +140,43 @@ class SpectralType:
         return spectype
 
     @property
+    def _spec_cls_idx(self) -> int:
+        return self._cls_order.index(self.spectral_class)
+
+    @property
+    def numerical_spectral_class(self) -> float:
+        """Spectral class and subclass as float for better interpolations.
+
+        Main spectral class is converted to its index in the OBAFGKM range
+        multiplied by 10, i.e. ``O -> 0``, ``B -> 10``, ..., ``M -> 60``.
+
+        Spectral Subclass (already a float) is added as-is, resulting in an
+        output value between 0.0 (O0) and 69.9 (M9.9).
+
+        This can be easily reversed by taking the ``divmod`` of the resulting
+        float value by 10 to get the original OBAFGKM index and subclass, e.g.
+        ``divmod(53.5, 10) -> 5, 3.5 -> K3.5``.
+        """
+        return self._spec_cls_idx * 10. + (self.spectral_subclass or 0.)
+
+    @property
+    def numerical_luminosity_class(self) -> float:
+        """Roman luminosity class converted to arabic number.
+
+        If no initial luminosity class was given, assume main sequence (V).
+        """
+        if self.luminosity_class is None:
+            return 5  # assume main sequence if not given
+        return ("I", "II", "III", "IV", "V").index(self.luminosity_class) + 1
+
+    @property
     def _comp_tuple(self) -> tuple[int, float]:
         # if None, assume middle of spectral class
         if self.spectral_subclass is not None:
             sub_cls = self.spectral_subclass
         else:
             sub_cls = 5
-        return (self._cls_order.index(self.spectral_class), sub_cls)
+        return (self._spec_cls_idx, sub_cls)
 
     def __lt__(self, other) -> bool:
         """Return self < other."""
