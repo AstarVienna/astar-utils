@@ -55,6 +55,13 @@ class SpectralType:
     luminosity_class : str or None
         Roman numeral luminosity class (I-V).
 
+    Notes
+    -----
+    The constructor string can be supplied in both upper or lower case or a
+    mixture thereof, meaning "A0V", "a0v", "A0v" and "a0V" are all valid
+    representations of the same spectral type. The internal attributes are
+    converted to uppercase upon creation.
+
     Examples
     --------
     >>> from astar_utils import SpectralType
@@ -93,8 +100,8 @@ class SpectralType:
     spectype: InitVar[str]
     _cls_order: ClassVar = "OBAFGKM"  # descending Teff
     _regex: ClassVar = re.compile(
-        r"^(?P<spec_cls>[OBAFGKM])(?P<sub_cls>\d(?:\.\d)?)?"
-        "(?P<lum_cls>I{1,3}|IV|V)?$", re.A | re.I)
+        r"^(?P<spec_cls>[OBAFGKM])(?P<sub_cls>\d(\.\d)?)?"
+        "(?P<lum_cls>I{1,3}|IV|V)?$", re.ASCII | re.IGNORECASE)
 
     def __post_init__(self, spectype) -> None:
         """Validate input and populate fields."""
@@ -103,12 +110,16 @@ class SpectralType:
 
         classes = match.groupdict()
         # Circumvent frozen as per the docs...
-        object.__setattr__(self, "spectral_class", classes["spec_cls"])
-        object.__setattr__(self, "luminosity_class", classes["lum_cls"])
+        object.__setattr__(self, "spectral_class",
+                           str(classes["spec_cls"]).upper())
 
         if classes["sub_cls"] is not None:
             object.__setattr__(self, "spectral_subclass",
                                float(classes["sub_cls"]))
+
+        if classes["lum_cls"] is not None:
+            object.__setattr__(self, "luminosity_class",
+                               str(classes["lum_cls"]).upper())
 
     @property
     def _subcls_str(self) -> str:

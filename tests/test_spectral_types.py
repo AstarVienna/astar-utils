@@ -130,3 +130,16 @@ class TestRepresentations:
     def test_str(self, ssl_cls, exptcted):
         spt = SpectralType(ssl_cls)
         assert str(spt) == exptcted
+
+
+class TestUpperLowerCase:
+    def test_uppers_lower_case(self):
+        spt_a = SpectralType("A0V")
+        spt_b = SpectralType("a0v")
+        assert spt_a == spt_b
+
+    @pytest.mark.parametrize("mixcase", ["m2.5III", "M2.5iii"])
+    def test_uppers_lower_case_mixed(self, mixcase):
+        spt_a = SpectralType("M2.5III")
+        spt_b = SpectralType(mixcase)
+        assert spt_a == spt_b
