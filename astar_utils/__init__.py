@@ -5,3 +5,4 @@ from .nested_mapping import (NestedMapping, RecursiveNestedMapping,
 from .unique_list import UniqueList
 from .badges import Badge, BadgeReport
 from .loggers import get_logger, get_astar_logger
+from .spectral_types import SpectralType
