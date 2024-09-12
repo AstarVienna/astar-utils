@@ -279,6 +279,13 @@ class TestNestedChainMap:
         with pytest.raises(RecursionError):
             ncm["!foo.a"]
 
+    def test_returns_unresolved_as_is(self):
+        ncm = NestedChainMap(
+            RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
+            RecursiveNestedMapping({"foo": {"b": "!foo.c"}})
+        )
+        assert ncm["!foo.a"] == "!foo.c"
+
     def test_repr_pretty(self, simple_nestchainmap):
         printer = Mock()
         simple_nestchainmap._repr_pretty_(printer, True)
