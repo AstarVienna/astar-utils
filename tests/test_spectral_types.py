@@ -131,6 +131,20 @@ class TestRepresentations:
         spt = SpectralType(ssl_cls)
         assert str(spt) == exptcted
 
+    @pytest.mark.parametrize(("ssl_cls", "exptcted"),
+                             [("A0V", 20), ("G2", 42), ("K9.0", 59),
+                              ("B2.7", 12.7), ("M3.1III", 63.1), ("KII", 50),])
+    def test_num_spec_cls(self, ssl_cls, exptcted):
+        spt = SpectralType(ssl_cls)
+        assert spt.numerical_spectral_class == exptcted
+
+    @pytest.mark.parametrize(("ssl_cls", "exptcted"),
+                             [("A0V", 5), ("G2", 5), ("K9.0", 5), ("M4IV", 4),
+                              ("B2II", 2), ("M3.1III", 3), ("KII", 2),])
+    def test_num_lum_cls(self, ssl_cls, exptcted):
+        spt = SpectralType(ssl_cls)
+        assert spt.numerical_luminosity_class == exptcted
+
 
 class TestUpperLowerCase:
     def test_uppers_lower_case(self):
