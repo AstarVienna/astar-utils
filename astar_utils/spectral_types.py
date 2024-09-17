@@ -44,7 +44,9 @@ class SpectralType:
     In this context, the luminosity class (if any) is ignored for sorting and
     comparison (<, >, <=, >=), as it represents a second physical dimension.
     However, instances of this class may also be compared for equality (== and
-    !=), in which case all three attributes are considered.
+    !=), in which case all three attributes are considered. It is also possible
+    to compare instances directly to strings, if the string is a valid
+    construtor for this class.
 
     Attributes
     ----------
@@ -106,7 +108,7 @@ class SpectralType:
     def __post_init__(self, spectype) -> None:
         """Validate input and populate fields."""
         if not (match := self._regex.fullmatch(spectype)):
-            raise ValueError(spectype)
+            raise ValueError(f"{spectype!r} is not a valid spectral type.")
 
         classes = match.groupdict()
         # Circumvent frozen as per the docs...
@@ -178,14 +180,35 @@ class SpectralType:
             sub_cls = 5
         return (self._spec_cls_idx, sub_cls)
 
+    @classmethod
+    def _comp_guard(cls, other):
+        if isinstance(other, str):
+            other = cls(other)
+        if not isinstance(other, cls):
+            raise TypeError("Can only compare equal types or valid str.")
+        return other
+
+    def __eq__(self, other) -> bool:
+        """Return self == other."""
+        other = self._comp_guard(other)
+        return self._comp_tuple == other._comp_tuple
+
     def __lt__(self, other) -> bool:
         """Return self < other."""
-        if not isinstance(other, self.__class__):
-            raise TypeError("Can only compare equal types.")
+        other = self._comp_guard(other)
         return self._comp_tuple < other._comp_tuple
 
     def __le__(self, other) -> bool:
-        """Return self < other."""
-        if not isinstance(other, self.__class__):
-            raise TypeError("Can only compare equal types.")
+        """Return self <= other."""
+        other = self._comp_guard(other)
         return self._comp_tuple <= other._comp_tuple
+
+    def __gt__(self, other) -> bool:
+        """Return self > other."""
+        other = self._comp_guard(other)
+        return self._comp_tuple > other._comp_tuple
+
+    def __ge__(self, other) -> bool:
+        """Return self >= other."""
+        other = self._comp_guard(other)
+        return self._comp_tuple >= other._comp_tuple
