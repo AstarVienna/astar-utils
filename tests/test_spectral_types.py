@@ -108,6 +108,35 @@ class TestComparesTypes:
             operation(SpectralType("A0V"), 42)
 
 
+class TestComparesStr:
+    def test_lt(self):
+        assert SpectralType("A0V") < "A7V"
+
+    def test_le(self):
+        assert SpectralType("A0V") <= "A0V"
+
+    def test_gt(self):
+        assert SpectralType("A0V") > "B7V"
+
+    def test_ge(self):
+        assert SpectralType("A0V") >= "A0V"
+
+    def test_eq(self):
+        assert SpectralType("A0V") == "A0V"
+
+    def test_ne(self):
+        assert SpectralType("A0V") != "A1V"
+
+    def test_reverse_le(self):
+        assert "A0" <= SpectralType("A0V")
+
+    def test_reverse_gt(self):
+        assert "A7" > SpectralType("A0V")
+
+    def test_reverse_ne(self):
+        assert "A1" != SpectralType("A0V")
+
+
 class TestRepresentations:
     @pytest.mark.parametrize(("ssl_cls", "exptcted"),
                              [("A0V", "SpectralType('A0V')"),
