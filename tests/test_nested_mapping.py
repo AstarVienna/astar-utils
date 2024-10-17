@@ -268,16 +268,18 @@ class TestRecursiveNestedMapping:
 
 
 class TestNestedChainMap:
-    def test_resolves_bangs(self, simple_nestchainmap):
-        assert simple_nestchainmap["!foo.a"] == "bogus"
+    @pytest.mark.parametrize(("key", "result"), (("!foo.a", "!foo.b"),
+                                                 ("!foo.a!", "bogus")))
+    def test_resolves_bangs(self, simple_nestchainmap, key, result):
+        assert simple_nestchainmap[key] == result
 
     def test_infinite_loop(self):
         ncm = NestedChainMap(
-            RecursiveNestedMapping({"foo": {"a": "!foo.b"}}),
-            RecursiveNestedMapping({"foo": {"b": "!foo.a"}})
+            RecursiveNestedMapping({"foo": {"a": "!foo.b!"}}),
+            RecursiveNestedMapping({"foo": {"b": "!foo.a!"}})
         )
         with pytest.raises(RecursionError):
-            ncm["!foo.a"]
+            ncm["!foo.a!"]
 
     def test_repr_pretty(self, simple_nestchainmap):
         printer = Mock()
