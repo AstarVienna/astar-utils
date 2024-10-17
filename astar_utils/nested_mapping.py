@@ -286,7 +286,11 @@ class NestedChainMap(ChainMap):
             return NestedChainMap(*submaps)
 
         if is_bangkey(value) and is_resolving_key(key):
-            value = self[value]
+            try:
+                value = self[f"{value}!"]
+            except KeyError:
+                pass  # return value unresolved
+
         return value
 
     def __str__(self):
