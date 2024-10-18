@@ -227,23 +227,29 @@ class NestedMapping(abc.MutableMapping):
             printer.text(str(self))
 
 
-class RecursiveNestedMapping(NestedMapping):
+class RecursiveMapping:
+    """Mixin class just to factor out resolving string key functionality."""
+
+    def __getitem__(self, key: str):
+        """x.__getitem__(y) <==> x[y]."""
+        value = super().__getitem__(key.removesuffix("!"))
+
+        if is_bangkey(value) and is_resolving_key(key):
+            try:
+                value = self[f"{value}!"]
+            except KeyError:
+                pass  # return value unresolved
+
+        return value
+
+
+class RecursiveNestedMapping(RecursiveMapping, NestedMapping):
     """Like NestedMapping but internally resolves any bang-string values.
 
     In the event of an infinite loop of recursive bang-string keys pointing
     back to each other, this should savely and quickly throw a
     ``RecursionError``.
     """
-
-    def __getitem__(self, key: str):
-        """x.__getitem__(y) <==> x[y]."""
-        value = super().__getitem__(key)
-        while is_bangkey(value):
-            try:
-                value = self[value]
-            except KeyError:
-                return value
-        return value
 
     @classmethod
     def from_maps(cls, maps, key):
@@ -255,7 +261,7 @@ class RecursiveNestedMapping(NestedMapping):
                     mapping[key], title=f"[{i}] mapping")
 
 
-class NestedChainMap(ChainMap):
+class NestedChainMap(RecursiveMapping, ChainMap):
     """Subclass of ``collections.ChainMap`` using ``RecursiveNestedMapping``.
 
     Only overrides ``__getitem__`` to allow for both recursive bang-string keys
@@ -278,16 +284,14 @@ class NestedChainMap(ChainMap):
         """x.__getitem__(y) <==> x[y]."""
         value = super().__getitem__(key)
 
-        if isinstance(value, abc.Mapping):
-            submaps = tuple(RecursiveNestedMapping.from_maps(self.maps, key))
-            if len(submaps) == 1:
-                # Don't need the chain if it's just one...
-                return submaps[0]
-            return NestedChainMap(*submaps)
+        if not isinstance(value, abc.Mapping):
+            return value
 
-        if is_bangkey(value):
-            value = self[value]
-        return value
+        submaps = tuple(RecursiveNestedMapping.from_maps(self.maps, key))
+        if len(submaps) == 1:
+            # Don't need the chain if it's just one...
+            return submaps[0]
+        return NestedChainMap(*submaps)
 
     def __str__(self):
         """Return str(self)."""
@@ -304,6 +308,11 @@ class NestedChainMap(ChainMap):
 def is_bangkey(key) -> bool:
     """Return ``True`` if the key is a ``str`` and starts with a "!"."""
     return isinstance(key, str) and key.startswith("!")
+
+
+def is_resolving_key(key) -> bool:
+    """Return ``True`` if the key is a ``str`` and ends with a "!"."""
+    return isinstance(key, str) and key.endswith("!")
 
 
 def is_nested_mapping(mapping) -> bool:
