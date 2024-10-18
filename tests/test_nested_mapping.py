@@ -230,7 +230,15 @@ NestedMapping contents:
 
 
 class TestRecursiveNestedMapping:
-    def test_resolves_bangs(self):
+    @pytest.mark.parametrize(("key", "result"), (("bar", "!foo"),
+                                                 ("bar!", "a")))
+    def test_resolves_bangs(self, key, result):
+        rnm = RecursiveNestedMapping({"foo": "a", "bar": "!foo"})
+        assert rnm[key] == result
+
+    @pytest.mark.parametrize(("key", "result"), (("!foo.b", "!bar.y"),
+                                                 ("!foo.b!", 42)))
+    def test_resolves_bangs_multistage(self, key, result):
         rnm = RecursiveNestedMapping(
             {"foo": {
                 "a": "!bar.x",
@@ -241,7 +249,7 @@ class TestRecursiveNestedMapping:
                  "y": "!foo.a",
               },
              })
-        assert rnm["!foo.b"] == 42
+        assert rnm[key] == result
 
     def test_infinite_loop(self):
         rnm = RecursiveNestedMapping(
@@ -255,7 +263,7 @@ class TestRecursiveNestedMapping:
               },
              })
         with pytest.raises(RecursionError):
-            rnm["!foo.b"]
+            rnm["!foo.b!"]
 
     def test_returns_unresolved_as_is(self):
         rnm = RecursiveNestedMapping(
@@ -264,7 +272,7 @@ class TestRecursiveNestedMapping:
                 "b": "!bar.y",
               },
              })
-        assert rnm["!foo.b"] == "!bar.y"
+        assert rnm["!foo.b!"] == "!bar.y"
 
 
 class TestNestedChainMap:

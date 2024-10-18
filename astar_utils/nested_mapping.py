@@ -237,12 +237,14 @@ class RecursiveNestedMapping(NestedMapping):
 
     def __getitem__(self, key: str):
         """x.__getitem__(y) <==> x[y]."""
-        value = super().__getitem__(key)
-        while is_bangkey(value):
+        value = super().__getitem__(key.removesuffix("!"))
+
+        if is_bangkey(value) and is_resolving_key(key):
             try:
-                value = self[value]
+                value = self[f"{value}!"]
             except KeyError:
-                return value
+                pass  # return value unresolved
+
         return value
 
     @classmethod
