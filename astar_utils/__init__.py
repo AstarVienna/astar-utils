@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from .exceptions import AstarWarning, AstarUserWarning
 from .nested_mapping import (NestedMapping, RecursiveNestedMapping,
                              NestedChainMap, is_bangkey, is_nested_mapping)
 from .unique_list import UniqueList
