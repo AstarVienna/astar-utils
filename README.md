@@ -27,10 +27,20 @@ The package currently contains the following public functions and classes:
 - `get_logger()`: convenience function to get (or create) a logger with given `name` as a child of the universal `astar` logger.
 - `get_astar_logger()`: convenience function to get (or create) a logger with the name `astar`, which serves as the root for all A*V packages and applications.
 - `SpectralType`: a class to parse, store and compare spectral type designations.
+- `close_loop()`: an iterator function to add the first element back to the end.
+- `stringify_dict()`: convert all non-primitive dict values to strings.
+- `check_keys()`: check if required keys are present in dict and warn or raise otherwise.
 
 ### Loggers module
 
 - `loggers.ColoredFormatter`: a subclass of `logging.Formatter` to produce colored logging messages for console output.
+
+### Exceptions module
+
+- `AstarWarning`: base class for warnings within the Astar ecosystem.
+- `AstarUserWarning`: subclass of `AstarWarning` and the builtin `UserWarning`.
+
+To be expanded with custom Error base classes for astar.
 
 ## Dependencies
 
