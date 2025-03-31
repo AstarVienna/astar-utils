@@ -1,0 +1,96 @@
+name: Replace stable version placeholders
+on:
+  workflow_dispatch:
+      pkg-path:
+        type: string
+        description: Package path where to look for placeholders
+        required: true
+      file-pattern:
+        type: string
+        description: Glob pattern for files to find
+        required: false
+        default: "*.py"
+
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        description: Branch (ref) to checkout and push changes to
+        required: false
+        default: ${{ github.ref_name }}
+      pkg-path:
+        type: string
+        description: Package path where to look for placeholders
+        required: true
+      file-pattern:
+        type: string
+        description: Glob pattern for files to find
+        required: false
+        default: "*.py"
+    outputs:
+      curver:
+        description: Current version.
+        value: ${{ jobs.replace.outputs.curver }}
+      stable:
+        description: Next stable version.
+        value: ${{ jobs.replace.outputs.stable }}
+
+jobs:
+  replace:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      curver: ${{ steps.bobr.outputs.CUR_VER }}
+      stable: ${{ steps.chkrc.outputs.STABLE }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: "1.8.3"
+
+      - name: Get current package version
+        id: bobr
+        run: echo "CUR_VER=$(poetry version -s)" >> $GITHUB_OUTPUT
+
+      - name: Check if on rc version
+        id: chkrc
+        env:
+          CUR_VER: ${{ steps.bobr.outputs.CUR_VER }}
+        run: |
+          if [[ $CUR_VER =~ "rc" ]]; then
+            echo "STABLE=$(poetry version -s --dry-run prerelease --next-phase)" >> $GITHUB_OUTPUT
+            echo "On rc version of $STABLE" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::error:: $CUR_VER is not a rc version"
+          fi
+
+      - name: Replace placeholders
+        env:
+          STABLE: ${{ steps.chkrc.outputs.STABLE }}
+          PLCHLDR: "PLACEHOLDER_NEXT_RELEASE_VERSION"
+          PATH: ${{ inputs.pkg-path }}
+          PATTERN: ${{ inputs.file-pattern }}
+        run: find "$PATH" -type f -name "$PATTERN" -exec sed -i "s/$PLCHLDR/v$STABLE/g" {} +
+
+      - name: Commit changes
+        # could also use https://github.com/stefanzweifel/git-auto-commit-action instead
+        env:
+          STABLE: ${{ steps.chkrc.outputs.STABLE }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Replaced next version placeholders with v$STABLE"
+          git push
+          echo "Successfully committed and pushed placeholder replacement." >> $GITHUB_STEP_SUMMARY
