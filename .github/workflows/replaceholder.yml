@@ -1,6 +1,7 @@
 name: Replace stable version placeholders
 on:
   workflow_dispatch:
+    inputs:
       pkg-path:
         type: string
         description: Package path where to look for placeholders
