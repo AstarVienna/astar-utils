@@ -86,7 +86,7 @@ jobs:
         run: find "$PATH" -type f -name "$PATTERN" -exec sed -i "s/$PLCHLDR/v$STABLE/g" {} +
 
       - name: Commit changes
-        # could also use https://github.com/stefanzweifel/git-auto-commit-action instead
+        if: ${{ git diff --exit-code --quiet }}
         env:
           STABLE: ${{ steps.chkrc.outputs.STABLE }}
         run: |
