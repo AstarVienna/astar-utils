@@ -86,11 +86,14 @@ jobs:
         run: |
           echo "On rc version of $STABLE" >> $GITHUB_STEP_SUMMARY
           echo "Replacing $PLCHLDR in $PATTERN files inside $PKGPATH" >> $GITHUB_STEP_SUMMARY
-          echo "$(find $PKGPATH -type f -name '*.py' -exec sed -i 's/PLACEHOLDER_NEXT_RELEASE_VERSION/vx.y/g' {} +)" >> $GITHUB_STEP_SUMMARY
+          bash ./.github/replaceholders.sh
 
       - name: Check for changes
         id: chkdiff
-        run: echo "CHANGES=$(git diff --exit-code --quiet)" >> $GITHUB_OUTPUT
+        run: |
+          set +e
+          (git diff --exit-code --quiet)
+          echo "CHANGES=$?" >> $GITHUB_OUTPUT
 
       - name: Commit changes
         if: ${{ steps.chkdiff.outputs.CHANGES }}
