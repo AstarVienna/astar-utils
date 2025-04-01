@@ -72,7 +72,6 @@ jobs:
         run: |
           if [[ $CUR_VER =~ "rc" ]]; then
             echo "STABLE=$(poetry version -s --dry-run prerelease --next-phase)" >> $GITHUB_OUTPUT
-            echo "On rc version of $STABLE" >> $GITHUB_STEP_SUMMARY
           else
             echo "::error:: $CUR_VER is not a rc version"
           fi
@@ -81,12 +80,23 @@ jobs:
         env:
           STABLE: ${{ steps.chkrc.outputs.STABLE }}
           PLCHLDR: "PLACEHOLDER_NEXT_RELEASE_VERSION"
-          PATH: ${{ inputs.pkg-path }}
+          PKGPATH: ${{ inputs.pkg-path }}
           PATTERN: ${{ inputs.file-pattern }}
-        run: find "$PATH" -type f -name "$PATTERN" -exec sed -i "s/$PLCHLDR/v$STABLE/g" {} +
+        shell: bash
+        run: |
+          echo "On rc version of $STABLE" >> $GITHUB_STEP_SUMMARY
+          echo "Replacing $PLCHLDR in $PATTERN files inside $PKGPATH" >> $GITHUB_STEP_SUMMARY
+          bash ./.github/replaceholders.sh
+
+      - name: Check for changes
+        id: chkdiff
+        run: |
+          set +e
+          (git diff --exit-code --quiet)
+          echo "CHANGES=$?" >> $GITHUB_OUTPUT
 
       - name: Commit changes
-        # could also use https://github.com/stefanzweifel/git-auto-commit-action instead
+        if: ${{ steps.chkdiff.outputs.CHANGES }}
         env:
           STABLE: ${{ steps.chkrc.outputs.STABLE }}
         run: |
