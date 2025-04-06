@@ -1,4 +1,4 @@
-name: Replace stable version placeholders
+name: Replace version placeholders
 on:
   workflow_dispatch:
     inputs:
@@ -57,7 +57,7 @@ jobs:
           python-version: "3.11"
 
       - name: Set up Poetry
-        uses: abatilo/actions-poetry@v4
+        uses: abatilo/actions-poetry@v3.0.2
         with:
           poetry-version: "2.1.2"
 
