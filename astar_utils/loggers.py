@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-"""To have all logger creation in one place.
-
-.. versionchanged:: PLACEHOLDER_NEXT_RELEASE_VERSION
-
-   Here's a version changed message.
-"""
+"""To have all logger creation in one place."""
 
 import logging
 
