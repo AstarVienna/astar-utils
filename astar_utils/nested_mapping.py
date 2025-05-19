@@ -159,7 +159,7 @@ class NestedMapping(abc.MutableMapping):
     def _write_subkey(key: str, pre: str, final: bool, stream: TextIO) -> str:
         subpre = "└─" if final else "├─"
         newpre = pre + subpre
-        stream.write(f"{newpre}{key}: ")
+        stream.write(f"{newpre}{key}:")
         return newpre
 
     def _write_subitems(
@@ -184,7 +184,7 @@ class NestedMapping(abc.MutableMapping):
             if nested and is_super:
                 self._write_subdict(val, stream, newpre)
             else:
-                stream.write(f"{val}")
+                stream.write(f" {val}")
 
         return simple
 
@@ -233,7 +233,6 @@ class NestedMapping(abc.MutableMapping):
         top_level: bool = False,
     ) -> None:
         self._write_subitems_html(subdict.items(), stream, top_level)
-
 
     def write_string(self, stream: TextIO) -> None:
         """Write formatted string representation to I/O stream."""
