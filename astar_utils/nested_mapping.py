@@ -268,7 +268,11 @@ class NestedMapping(abc.MutableMapping):
             str_stream.write("<details>\n")
             str_stream.write(
                 f"<summary><strong>{self.title}</strong></summary>\n")
-            self._write_subdict_html(self.dic, str_stream, True)
+            # HACK: startswith("[") to avoid printing "!" on instances created
+            #       from a chain map query
+            self._write_subdict_html(
+                self.dic, str_stream, (not self._title.startswith("[")
+                                       if self._title else False))
             str_stream.write("</details>\n")
             output = str_stream.getvalue()
         return output
