@@ -159,7 +159,7 @@ class NestedMapping(abc.MutableMapping):
     def _write_subkey(key: str, pre: str, final: bool, stream: TextIO) -> str:
         subpre = "└─" if final else "├─"
         newpre = pre + subpre
-        stream.write(f"{newpre}{key}: ")
+        stream.write(f"{newpre}{key}:")
         return newpre
 
     def _write_subitems(
@@ -184,9 +184,37 @@ class NestedMapping(abc.MutableMapping):
             if nested and is_super:
                 self._write_subdict(val, stream, newpre)
             else:
-                stream.write(f"{val}")
+                stream.write(f" {val}")
 
         return simple
+
+    def _write_subitems_html(
+        self,
+        items: abc.Collection[tuple[str, Any]],
+        stream: TextIO,
+        top_level: bool = False,
+    ) -> None:
+        if top_level:
+            for key, val in items:
+                stream.write("<details style=\"margin-left: 20px\">\n")
+                stream.write(
+                    f"<summary><strong>\u2757{key!s}</strong></summary>\n")
+                if isinstance(val, abc.Mapping):
+                    self._write_subdict_html(val, stream)
+                else:
+                    stream.write(f"{val!s}\n")
+                stream.write("</details>\n")
+        else:
+            stream.write("<ul>\n")
+            for key, val in items:
+                stream.write(f"<li><strong>{key!s}:</strong>")
+                if isinstance(val, abc.Mapping):
+                    stream.write("\n")
+                    self._write_subdict_html(val, stream)
+                else:
+                    stream.write(f" {val!s}")
+                stream.write("</li>\n")
+            stream.write("</ul>\n")
 
     def _write_subdict(
         self,
@@ -197,6 +225,14 @@ class NestedMapping(abc.MutableMapping):
         pre = pad.replace("├─", "│ ").replace("└─", "  ")
         simple = self._write_subitems(subdict.items(), pre, stream, True)
         self._write_subitems(simple, pre, stream)
+
+    def _write_subdict_html(
+        self,
+        subdict: abc.Mapping,
+        stream: TextIO,
+        top_level: bool = False,
+    ) -> None:
+        self._write_subitems_html(subdict.items(), stream, top_level)
 
     def write_string(self, stream: TextIO) -> None:
         """Write formatted string representation to I/O stream."""
@@ -225,6 +261,21 @@ class NestedMapping(abc.MutableMapping):
             printer.text("NestedMapping(...)")
         else:
             printer.text(str(self))
+
+    def _repr_html_(self) -> str:
+        """For notebooks."""
+        with StringIO() as str_stream:
+            str_stream.write("<details>\n")
+            str_stream.write(
+                f"<summary><strong>{self.title}</strong></summary>\n")
+            # HACK: startswith("[") to avoid printing "!" on instances created
+            #       from a chain map query
+            self._write_subdict_html(
+                self.dic, str_stream, (not self._title.startswith("[")
+                                       if self._title else False))
+            str_stream.write("</details>\n")
+            output = str_stream.getvalue()
+        return output
 
 
 class RecursiveMapping:
@@ -303,6 +354,12 @@ class NestedChainMap(RecursiveMapping, ChainMap):
             printer.text("NestedChainMap(...)")
         else:
             printer.text(str(self))
+
+    def _repr_html_(self) -> str:
+        """For notebooks."""
+        reprs = (mapping._repr_html_() if hasattr(mapping, "_repr_html_")
+                 else str(mapping) for mapping in self.maps)
+        return "\n\n".join(reprs)
 
 
 def is_bangkey(key) -> bool:

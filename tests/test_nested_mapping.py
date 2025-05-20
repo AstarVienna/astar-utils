@@ -190,12 +190,12 @@ class TestRepresentation:
     def test_str_conversion(self, nested_nestmap):
         desired = """
 NestedMapping contents:
-├─bar: 
-│ ├─bogus: 
+├─bar:
+│ ├─bogus:
 │ │ ├─a: 42
 │ │ └─b: 69
 │ └─baz: meh
-├─yeet: 
+├─yeet:
 │ ├─x: 0
 │ └─y: 420
 ├─foo: 5
@@ -227,6 +227,12 @@ NestedMapping contents:
         printer.text.assert_called_with("NestedMapping(...)")
         nested_nestmap._repr_pretty_(printer, False)
         printer.text.assert_called_with(str(nested_nestmap))
+
+    def test_repr_html(self, nested_nestmap):
+        html = nested_nestmap._repr_html_()
+        assert "<details>" in html
+        assert "<ul>" in html
+        assert "<li>" in html
 
 
 class TestRecursiveNestedMapping:
@@ -302,6 +308,10 @@ class TestNestedChainMap:
         printer.text.assert_called_with("NestedChainMap(...)")
         simple_nestchainmap._repr_pretty_(printer, False)
         printer.text.assert_called_with(str(simple_nestchainmap))
+
+    def test_repr_html(self, simple_nestchainmap):
+        html = simple_nestchainmap._repr_html_()
+        assert "<details>" in html
 
 
 class TestNestedChainMapSubdictKeyInMultipleLevels:
