@@ -2,10 +2,6 @@ name: Replace version placeholders
 on:
   workflow_dispatch:
     inputs:
-      pkg-path:
-        type: string
-        description: Package path where to look for placeholders
-        required: true
       file-pattern:
         type: string
         description: Glob pattern for files to find
@@ -18,3 +14,4 @@ jobs:
     secrets: inherit
     with:
       pkg-path: ./astar_utils
+      file-pattern: ${{ inputs.file-pattern }}
