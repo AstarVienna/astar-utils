@@ -73,7 +73,7 @@ class NestedMapping(abc.MutableMapping):
             try:
                 entry = entry[chunk]
             except KeyError as err:
-                # Retry with int, because a comnined bang key will be split
+                # Retry with int, because a combined bang key will be split
                 # into strings, so any int keys will not work. But we can also
                 # not just cast every number to float or int, because there
                 # might as well be a key that's a numeric string on purpose...
