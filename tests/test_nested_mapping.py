@@ -131,6 +131,10 @@ class TestActsLikeDict:
             nested_nestmap["!foo.bogus"] = 3
         assert "overwritten with" in str(excinfo.value)
 
+    def test_can_resolve_int_subkey(self, nested_nestmap):
+        nested_nestmap["newkey"] = {1: "one", 2: "two"}
+        assert nested_nestmap["!newkey.2"] == "two"
+
 
 class TestRecursiveUpdate:
     def test_updates_normal_recursive_dicts(self):
