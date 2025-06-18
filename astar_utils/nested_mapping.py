@@ -73,7 +73,15 @@ class NestedMapping(abc.MutableMapping):
             try:
                 entry = entry[chunk]
             except KeyError as err:
-                raise KeyError(key) from err
+                # Retry with int, because a comnined bang key will be split
+                # into strings, so any int keys will not work. But we can also
+                # not just cast every number to float or int, because there
+                # might as well be a key that's a numeric string on purpose...
+                try:
+                    entry = entry[int(chunk)]
+                except (KeyError, ValueError):
+                    # Raise from original error rather than type casting fails.
+                    raise KeyError(key) from err
 
         if is_nested_mapping(entry):
             return self.__class__(entry)
