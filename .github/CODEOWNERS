@@ -5,7 +5,7 @@
 # Global default
 *  @AstarVienna/scopesim-devs
 
-/.github/  @teutoburg
+/.github/  @hugobuddel @teutoburg
 
 /astar_utils/  @teutoburg
 /tests/  @teutoburg
