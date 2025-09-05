@@ -28,8 +28,8 @@ dependencies = [
 repository = "https://github.com/AstarVienna/astar-utils"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4.3"
-pytest-cov = "^4.1.0"
+pytest = "^8.3.5"
+pytest-cov = "^6.2.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
