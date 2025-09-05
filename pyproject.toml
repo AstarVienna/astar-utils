@@ -1,35 +1,38 @@
-[tool.poetry]
+[project]
 name = "astar-utils"
 version = "0.3.4rc1"
 description = "Contains commonly-used utilities for AstarVienna's projects."
-license = "GPL-3.0-or-later"
-authors = ["Fabian Haberhauer <fabian.haberhauer@univie.ac.at>"]
+license = {text = "GPL-3.0-or-later"}
+authors = [
+    {name = "Fabian Haberhauer", email = "fabian.haberhauer@univie.ac.at"}
+]
 maintainers = [
-    "Fabian Haberhauer <fabian.haberhauer@univie.ac.at>",
-    "Hugo Buddelmeijer <hugo@buddelmeijer.nl>",
+    {name = "Fabian Haberhauer", email = "fabian.haberhauer@univie.ac.at"},
+    {name = "Hugo Buddelmeijer", email = "hugo@buddelmeijer.nl"},
 ]
 readme = "README.md"
-repository = "https://github.com/AstarVienna/astar-utils"
 classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Utilities"
 ]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "more-itertools (>=10.2.0,<11.0.0)",
+    "pyyaml (>=6.0.2,<7.0.0)",
+    "colorama (>=0.4.6,<1.0)"
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-more-itertools = "^10.1.0"
-pyyaml = "^6.0.1"
-colorama = "^0.4.6"
-
+[project.urls]
+repository = "https://github.com/AstarVienna/astar-utils"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.run]
