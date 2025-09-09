@@ -21,10 +21,90 @@ on:
         - major
 
 jobs:
-  Bump:
-    name: Bump version number
-    uses: AstarVienna/DevOps/.github/workflows/bump.yml@main
-    secrets: inherit
-    with:
-      dry-run: ${{ inputs.dry-run }}
-      rule: ${{ inputs.rule }}
+  bump:
+    name: Bump package version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      bumpmsg: ${{ steps.bumping.outputs.BUMP_MSG }}
+
+    steps:
+      - name: Write App private key to file
+        run: |
+          echo "${{ secrets.APP_PRIVATE_KEY }}" > private-key.pem
+
+      - name: Generate JWT
+        id: jwt
+        shell: bash
+        run: |
+          now=$(date +%s)
+          exp=$((now + 600))  # 10 minutes
+          header='{"alg":"RS256","typ":"JWT"}'
+          payload="{\"iat\":$now,\"exp\":$exp,\"iss\":${{ secrets.APP_ID }}}"
+
+          base64url() {
+            openssl base64 -e -A | tr '+/' '-_' | tr -d '='
+          }
+
+          jwt_header=$(echo -n "$header" | base64url)
+          jwt_payload=$(echo -n "$payload" | base64url)
+
+          jwt_unsigned="${jwt_header}.${jwt_payload}"
+          jwt_signature=$(echo -n "$jwt_unsigned" | openssl dgst -sha256 -sign private-key.pem | base64url)
+
+          echo "jwt_token=${jwt_unsigned}.${jwt_signature}" >> $GITHUB_OUTPUT
+
+      - name: Request Installation Access Token
+        id: auth
+        shell: bash
+        run: |
+          token=$(curl -s -X POST \
+            -H "Authorization: Bearer ${{ steps.jwt.outputs.jwt_token }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/app/installations/${{ secrets.APP_INSTALLATION_ID }}/access_tokens |
+            jq -r .token)
+
+          echo "token=$token" >> $GITHUB_OUTPUT
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.branch }}
+          token: ${{ steps.auth.outputs.token }}
+
+      - name: Install poetry
+        shell: bash
+        run: pipx install poetry==2.1.4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Bump package Version using Poetry
+        id: bumping
+        env:
+          RULE: ${{ inputs.rule }}
+          DRY: ${{ inputs.dry-run && '--dry-run' || '' }}
+        run: echo "BUMP_MSG=$(poetry version $DRY $RULE)" >> $GITHUB_OUTPUT
+
+      - name: Output debug msg
+        if: inputs.dry-run
+        env:
+          BUMP_MSG: ${{ steps.bumping.outputs.BUMP_MSG }}
+        run: |
+          echo "## $BUMP_MSG" >> $GITHUB_STEP_SUMMARY
+          echo "Dry run only, no actual modification made." >> $GITHUB_STEP_SUMMARY
+
+      - name: Commit changes
+        if: ${{ ! inputs.dry-run }}
+        env:
+          BUMP_MSG: ${{ steps.bumping.outputs.BUMP_MSG }}
+        run: |
+          git config user.name "AstarVienna Bot"
+          git config user.email "astar.astro@univie.ac.at"
+          git commit -am "$BUMP_MSG"
+          git push
+          echo "## $BUMP_MSG" >> $GITHUB_STEP_SUMMARY
+          echo "Successfully committed and pushed version bump." >> $GITHUB_STEP_SUMMARY
