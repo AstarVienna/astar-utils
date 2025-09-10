@@ -1,6 +1,6 @@
 [project]
 name = "astar-utils"
-version = "0.3.4rc1"
+version = "0.3.4rc2"
 description = "Contains commonly-used utilities for AstarVienna's projects."
 license = {text = "GPL-3.0-or-later"}
 authors = [
@@ -11,12 +11,7 @@ maintainers = [
     {name = "Hugo Buddelmeijer", email = "hugo@buddelmeijer.nl"},
 ]
 readme = "README.md"
-classifiers = [
-    "Intended Audience :: Science/Research",
-    "Operating System :: OS Independent",
-    "Topic :: Scientific/Engineering :: Astronomy",
-    "Topic :: Utilities"
-]
+dynamic = [ "classifiers" ]
 requires-python = ">=3.10,<3.13"
 dependencies = [
     "more-itertools (>=10.2.0,<11.0.0)",
@@ -25,7 +20,17 @@ dependencies = [
 ]
 
 [project.urls]
-repository = "https://github.com/AstarVienna/astar-utils"
+Repository = "https://github.com/AstarVienna/astar-utils"
+Changelog = "https://github.com/AstarVienna/astar-utils/releases"
+
+
+[tool.poetry]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Utilities"
+]
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.5"

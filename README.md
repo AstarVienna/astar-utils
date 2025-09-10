@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/AstarVienna/astar-utils/actions/workflows/tests.yml/badge.svg)](https://github.com/AstarVienna/astar-utils/actions/workflows/tests.yml)
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
-![dev version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAstarVienna%2Fastar-utils%2Fmain%2Fpyproject.toml&query=%24.tool.poetry.version&label=dev%20version&color=teal)
+![dev version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAstarVienna%2Fastar-utils%2Fmain%2Fpyproject.toml&query=%24.project.version&label=dev%20version&color=teal)
 
 [![codecov](https://codecov.io/gh/AstarVienna/astar-utils/graph/badge.svg)](https://codecov.io/gh/AstarVienna/astar-utils)
 [![PyPI - Version](https://img.shields.io/pypi/v/astar-utils)](https://pypi.org/project/astar-utils/)
