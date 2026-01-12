@@ -1,6 +1,6 @@
 [project]
 name = "astar-utils"
-version = "0.5.0a0"
+version = "0.5.0"
 description = "Contains commonly-used utilities for AstarVienna's projects."
 license = {text = "GPL-3.0-or-later"}
 authors = [
