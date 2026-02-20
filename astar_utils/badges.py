@@ -220,7 +220,7 @@ class BadgeReport(NestedMapping):
         logs_filename: str = "badge_report_log.txt",
         save_logs: bool = True,
         base_path=None,
-    ):
+    ) -> None:
         logger.debug("REPORT INIT")
         if base_path is not None:
             base_path = Path(base_path)
