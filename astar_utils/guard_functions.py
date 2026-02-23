@@ -3,7 +3,10 @@
 
 
 def guard_same_len(*args):
-    """Check if all args are the same len or None, raise otherwise."""
+    """Check if all args are the same len or None, raise otherwise.
+
+    .. versionadded:: 0.5.1
+    """
     n_lens = len(set(len(arg) for arg in args if arg is not None))
     if n_lens > 1:
         raise ValueError(
