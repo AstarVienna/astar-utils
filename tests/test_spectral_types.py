@@ -162,7 +162,7 @@ class TestRepresentations:
 
     @pytest.mark.parametrize(("ssl_cls", "exptcted"),
                              [("A0V", 20), ("G2", 42), ("K9.0", 59),
-                              ("B2.7", 12.7), ("M3.1III", 63.1), ("KII", 50),])
+                              ("B2.7", 12.7), ("M3.1III", 63.1), ("KII", 55),])
     def test_num_spec_cls(self, ssl_cls, exptcted):
         spt = SpectralType(ssl_cls)
         assert spt.numerical_spectral_class == exptcted

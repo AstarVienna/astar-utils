@@ -146,6 +146,14 @@ class SpectralType:
         return self._cls_order.index(self.spectral_class)
 
     @property
+    def _spec_subcls(self) -> float:
+        # if None, assume middle of spectral class
+        # must explicitly check for None to avoid replacing 0
+        if self.spectral_subclass is not None:
+            return self.spectral_subclass
+        return 5.
+
+    @property
     def numerical_spectral_class(self) -> float:
         """Spectral class and subclass as float for better interpolations.
 
@@ -153,13 +161,14 @@ class SpectralType:
         multiplied by 10, i.e. ``O -> 0``, ``B -> 10``, ..., ``M -> 60``.
 
         Spectral Subclass (already a float) is added as-is, resulting in an
-        output value between 0.0 (O0) and 69.9 (M9.9).
+        output value between 0.0 (O0) and 69.9 (M9.9). If no Subclass was given,
+        assume middle of spectral class (5), consistent with comparison methods.
 
         This can be easily reversed by taking the ``divmod`` of the resulting
         float value by 10 to get the original OBAFGKM index and subclass, e.g.
         ``divmod(53.5, 10) -> 5, 3.5 -> K3.5``.
         """
-        return self._spec_cls_idx * 10. + (self.spectral_subclass or 0.)
+        return self._spec_cls_idx * 10. + self._spec_subcls
 
     @property
     def numerical_luminosity_class(self) -> float:
@@ -173,12 +182,7 @@ class SpectralType:
 
     @property
     def _comp_tuple(self) -> tuple[int, float]:
-        # if None, assume middle of spectral class
-        if self.spectral_subclass is not None:
-            sub_cls = self.spectral_subclass
-        else:
-            sub_cls = 5
-        return (self._spec_cls_idx, sub_cls)
+        return (self._spec_cls_idx, self._spec_subcls)
 
     @classmethod
     def _comp_guard(cls, other):
