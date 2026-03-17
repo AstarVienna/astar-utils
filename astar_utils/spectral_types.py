@@ -194,6 +194,9 @@ class SpectralType:
 
     def __eq__(self, other) -> bool:
         """Return self == other."""
+        if other == "":
+            # Required for Astropy Table writing...
+            return False
         other = self._comp_guard(other)
         return self._comp_tuple == other._comp_tuple
 
@@ -216,3 +219,6 @@ class SpectralType:
         """Return self >= other."""
         other = self._comp_guard(other)
         return self._comp_tuple >= other._comp_tuple
+
+    def tolist(self):
+        return str(self)
