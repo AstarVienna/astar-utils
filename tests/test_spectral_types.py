@@ -28,7 +28,7 @@ class TestParsesTypes:
         assert spt.spectral_subclass == float(sub_cls)
         assert spt.luminosity_class is None
 
-    @pytest.mark.parametrize("spec_sub_cls", ["X2", "Y3.5", "G99", "K1.2222"])
+    @pytest.mark.parametrize("spec_sub_cls", ["X2", "Z3.5", "G99", "K1.2222"])
     def test_fails_on_invalid_spec_and_sub_cls(self, spec_sub_cls):
         with pytest.raises(ValueError):
             SpectralType(spec_sub_cls)

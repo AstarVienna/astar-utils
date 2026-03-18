@@ -57,6 +57,11 @@ class SpectralType:
     luminosity_class : str or None
         Roman numeral luminosity class (I-V).
 
+    Class Attributes
+    ----------------
+    spectral_classes : str
+        Currently supported values for main spectral class.
+
     Notes
     -----
     The constructor string can be supplied in both upper or lower case or a
@@ -100,9 +105,9 @@ class SpectralType:
     spectral_subclass: float | None = field(init=False, default=None)
     luminosity_class: str | None = field(init=False, default=None)
     spectype: InitVar[str]
-    _cls_order: ClassVar = "OBAFGKM"  # descending Teff
+    spectral_classes: ClassVar = "OBAFGKMLTY"  # descending Teff
     _regex: ClassVar = re.compile(
-        r"^(?P<spec_cls>[OBAFGKM])(?P<sub_cls>\d(\.\d)?)?"
+        r"^(?P<spec_cls>[OBAFGKMLTY])(?P<sub_cls>\d(\.\d)?)?"
         "(?P<lum_cls>I{1,3}|IV|V)?$", re.ASCII | re.IGNORECASE)
 
     def __post_init__(self, spectype) -> None:
@@ -143,7 +148,7 @@ class SpectralType:
 
     @property
     def _spec_cls_idx(self) -> int:
-        return self._cls_order.index(self.spectral_class)
+        return self.spectral_classes.index(self.spectral_class)
 
     @property
     def _spec_subcls(self) -> float:
@@ -194,6 +199,9 @@ class SpectralType:
 
     def __eq__(self, other) -> bool:
         """Return self == other."""
+        if other == "":
+            # Required for Astropy Table writing...
+            return False
         other = self._comp_guard(other)
         return self._comp_tuple == other._comp_tuple
 
@@ -216,3 +224,7 @@ class SpectralType:
         """Return self >= other."""
         other = self._comp_guard(other)
         return self._comp_tuple >= other._comp_tuple
+
+    def tolist(self):
+        """Return str(self), for use in Astropy Table."""
+        return str(self)
