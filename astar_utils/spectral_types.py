@@ -57,6 +57,11 @@ class SpectralType:
     luminosity_class : str or None
         Roman numeral luminosity class (I-V).
 
+    Class Attributes
+    ----------------
+    spectral_classes : str
+        Currently supported values for main spectral class.
+
     Notes
     -----
     The constructor string can be supplied in both upper or lower case or a
@@ -221,4 +226,5 @@ class SpectralType:
         return self._comp_tuple >= other._comp_tuple
 
     def tolist(self):
+        """Return str(self), for use in Astropy Table."""
         return str(self)
