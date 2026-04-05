@@ -28,6 +28,7 @@ The package currently contains the following public functions and classes:
 - `get_logger()`: convenience function to get (or create) a logger with given `name` as a child of the universal `astar` logger.
 - `get_astar_logger()`: convenience function to get (or create) a logger with the name `astar`, which serves as the root for all A*V packages and applications.
 - `SpectralType`: a class to parse, store and compare spectral type designations.
+- `get_cache_dir()`: convenience function to get the cache path for a A*V package, checking `ScopeSim_Data` first.
 
 ### Loggers module
 
