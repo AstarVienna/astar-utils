@@ -106,13 +106,14 @@ class SpectralType:
     luminosity_class: str | None = field(init=False, default=None)
     spectype: InitVar[str]
     spectral_classes: ClassVar = "OBAFGKMLTY"  # descending Teff
+    luminosity_classes: ClassVar = ("I", "II", "III", "IV", "V")
     _regex: ClassVar = re.compile(
         r"^(?P<spec_cls>[OBAFGKMLTY])(?P<sub_cls>\d(\.\d)?)?"
         "(?P<lum_cls>I{1,3}|IV|V)?$", re.ASCII | re.IGNORECASE)
 
     def __post_init__(self, spectype) -> None:
         """Validate input and populate fields."""
-        if not (match := self._regex.fullmatch(spectype)):
+        if not (match := self._regex.fullmatch(str(spectype))):
             raise ValueError(f"{spectype!r} is not a valid spectral type.")
 
         classes = match.groupdict()
@@ -159,6 +160,10 @@ class SpectralType:
         return 5.
 
     @property
+    def _lum_cls_idx(self) -> int:
+        return self.luminosity_classes.index(self.luminosity_class)
+
+    @property
     def numerical_spectral_class(self) -> float:
         """Spectral class and subclass as float for better interpolations.
 
@@ -183,11 +188,16 @@ class SpectralType:
         """
         if self.luminosity_class is None:
             return 5  # assume main sequence if not given
-        return ("I", "II", "III", "IV", "V").index(self.luminosity_class) + 1
+        return self._lum_cls_idx + 1
+
 
     @property
     def _comp_tuple(self) -> tuple[int, float]:
         return (self._spec_cls_idx, self._spec_subcls)
+
+    @property
+    def _comp_tuple_full(self) -> tuple[int, float, str]:
+        return (self._spec_cls_idx, self._spec_subcls, self.luminosity_class)
 
     @classmethod
     def _comp_guard(cls, other):
@@ -203,7 +213,10 @@ class SpectralType:
             # Required for Astropy Table writing...
             return False
         other = self._comp_guard(other)
-        return self._comp_tuple == other._comp_tuple
+        if self.luminosity_class is None or other.luminosity_class is None:
+            # If luminosity class isn't given for one, don't compare it.
+            return self._comp_tuple == other._comp_tuple
+        return self._comp_tuple_full == other._comp_tuple_full
 
     def __lt__(self, other) -> bool:
         """Return self < other."""
