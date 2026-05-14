@@ -190,6 +190,55 @@ class SpectralType:
             return 5  # assume main sequence if not given
         return self._lum_cls_idx + 1
 
+    def to_array(self):
+        """Cast to numpy array using numerical types as defined above."""
+        # Can't use __array__ magic method to avoid unwanted array casting...
+        import numpy as np  # import only when needed to avoid dependency
+        return np.array(
+            [self.numerical_spectral_class, self.numerical_luminosity_class]
+        )
+
+    @classmethod
+    def from_array(cls, array):
+        """
+        Construct instance(s) from numpy array of shape (2,) or (n, 2).
+
+        Assumes first item is numerical spectral class and second item is
+        numerical luminosity class, as defined above. If given an array of shape
+        (n, 2), a list of instances is returned.
+
+        Parameters
+        ----------
+        array : np.ndarray
+            Numpy array of shape (2,) or (n, 2).
+
+        Raises
+        ------
+        TypeError
+            Raised if array shape is anything other than (2,) after iterating
+            over any higher dimensions.
+
+        Returns
+        -------
+        SpectralType | list[SpectralType]
+            Newly created instance or list thereof.
+
+        """
+        import numpy as np  # import only when needed to avoid dependency
+        array = np.asarray(array).astype(np.intp)  # to make sure...
+
+        if array.ndim > 1:
+            return [cls.from_array(item) for item in array]
+
+        if array.shape != (2,):
+            raise TypeError("Can only construct from 2-tuple.")
+
+        num_spec_cls, num_lum_cls = array
+        spec_cls, spec_subcls = divmod(num_spec_cls, 10)
+        spec_cls = cls.spectral_classes[spec_cls]
+        lum_cls = cls.luminosity_classes[num_lum_cls - 1]
+
+        return cls(f"{spec_cls}{spec_subcls}{lum_cls}")
 
     @property
     def _comp_tuple(self) -> tuple[int, float]:
