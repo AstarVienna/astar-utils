@@ -89,8 +89,9 @@ class TestFindCachedFile:
         )
         assert found == fake_home / "spextra" / "svo" / "filt"
 
-    def test_returns_none_when_missing(self, no_scopesim_data, fake_home):
-        assert cd.find_cached_file(Path("nope"), "spextra") is None
+    def test_throws_when_missing(self, no_scopesim_data, fake_home):
+        with pytest.raises(FileNotFoundError):
+            cd.find_cached_file(Path("nope"), "spextra")
 
 
 class TestGetWriteCacheDir:
@@ -140,10 +141,8 @@ class TestIncludeHomeCache:
         # File only in the home cache -> not found when home cache excluded.
         (fake_home / "spextra").mkdir(parents=True)
         (fake_home / "spextra" / "x").write_text("x")
-        assert (
+        with pytest.raises(FileNotFoundError):
             cd.find_cached_file(Path("x"), "spextra", include_home_cache=False)
-            is None
-        )
         # ...but found with the default behaviour.
         assert (
             cd.find_cached_file(Path("x"), "spextra")

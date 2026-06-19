@@ -56,10 +56,10 @@ __all__ = [
 # Environment variable that, when set to a non-empty value, redirects writes
 # into the installed ``scopesim_data`` tree. Intended to be set **only** in
 # ScopeSim_Data's own CI run.
-SIM_DATA_CI_ENV: str = "SCOPESIM_DATA_CI_FLAG"
+SIM_DATA_CI_ENV = "SCOPESIM_DATA_CI_FLAG"
 
 # Fallback cache root in the user's home directory.
-HOME_CACHE: Path = Path.home() / ".astar"
+HOME_CACHE = Path.home() / ".astar"
 
 
 def _scopesim_data_root() -> Path | None:
@@ -81,7 +81,6 @@ def _pkg_subdir(root: Path, package_name: str | None) -> Path:
 def iter_read_cache_dirs(
     package_name: str | None = None,
     extra_dirs: Iterable[Path] = (),
-    *,
     include_home_cache: bool = True,
 ) -> Iterator[Path]:
     """Yield cache directories to read from, in priority order.
@@ -130,9 +129,8 @@ def find_cached_file(
     relpath: Path,
     package_name: str | None = None,
     extra_dirs: Iterable[Path] = (),
-    *,
     include_home_cache: bool = True,
-) -> Path | None:
+) -> Path:
     """Return the first existing ``cache_dir / relpath``, or None.
 
     Searches the directories from ``iter_read_cache_dirs`` in priority order.
@@ -146,17 +144,22 @@ def find_cached_file(
     package_name, extra_dirs
         Passed through to ``iter_read_cache_dirs``.
 
+    Raises
+    ------
+    FileNotFoundError
+        Raised if no cached file is found. Callers should catch this to trigger
+        a download.
+
     Returns
     -------
-    Path or None
-        Full path to the located file, or None if not found anywhere.
+    Path
+        Full path to the located file, if found.
     """
-    relpath = Path(relpath)
     for cache_dir in iter_read_cache_dirs(
             package_name, extra_dirs, include_home_cache=include_home_cache):
         if (candidate := cache_dir / relpath).is_file():
             return candidate
-    return None
+    raise FileNotFoundError()
 
 
 def get_write_cache_dir(package_name: str | None = None) -> Path:
@@ -174,15 +177,16 @@ def get_write_cache_dir(package_name: str | None = None) -> Path:
     package_name : str or None, optional
         Name of the Astar package, appended as a subfolder if given.
 
+    Raises
+    ------
+    RuntimeError
+        If `SIM_DATA_CI_ENV` is set but ``scopesim_data`` is not installed.
+
     Returns
     -------
     Path
         Writable cache directory.
 
-    Raises
-    ------
-    RuntimeError
-        If `SIM_DATA_CI_ENV` is set but ``scopesim_data`` is not installed.
     """
     if environ.get(SIM_DATA_CI_ENV):
         if (root := _scopesim_data_root()) is None:
