@@ -1,6 +1,6 @@
 [project]
 name = "astar-utils"
-version = "0.5.2a0"
+version = "0.5.4a2"
 description = "Contains commonly-used utilities for AstarVienna's projects."
 license = {text = "GPL-3.0-or-later"}
 authors = [
@@ -33,8 +33,8 @@ classifiers = [
 ]
 
 [tool.poetry.group.test.dependencies]
-pytest = "^9.0.2"
-pytest-cov = "^7.0.0"
+pytest = "^9.1.1"
+pytest-cov = "^7.1.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
