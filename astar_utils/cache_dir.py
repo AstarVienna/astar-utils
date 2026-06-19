@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
 """Common cache location for Astar packages with support for ScopeSim_Data.
 
-Previously each package handled this on its own (skycalc_ipy had a working
-version, others hardcoded ``~/.astar/``). Centralising it here means the logic
-lives in one place at the bottom of the dependency tree.
-
 ``scopesim_data`` is imported lazily inside the functions, so it never needs to
 be a hard dependency of ``astar-utils`` (which would create a circular tie).
 
 Reading and writing follow different rules. Reading searches several locations
 in priority order and returns the first hit. Writing goes to the user's home
-cache *unless* the ``SCOPESIM_DATA_CI_FLAG`` environment flag is set -- this
-flag is meant to be set **only** in ScopeSim_Data's own CI, when the committed
-data bundle is being refreshed. A regular user who merely has ``scopesim_data``
+cache *unless* the ``SCOPESIM_DATA_CI_FLAG`` environment flag is set. This flag
+is meant to be set **only** in ScopeSim_Data's own CI, when the committed data
+bundle is being refreshed. A regular user who merely has ``scopesim_data``
 installed therefore reads from it but never writes into it (which would land in
 a read-only ``site-packages`` and never be committed anyway).
 
@@ -107,7 +103,7 @@ def iter_read_cache_dirs(
     include_home_cache : bool, optional
         Whether to yield the home cache as the last location (default True).
         Set this to False when the home cache is managed by something else
-        that should own it -- e.g. a `pooch.Pooch` whose ``path`` is the home
+        that should own it, e.g. a `pooch.Pooch` whose ``path`` is the home
         cache and which does its own hash check there. In that case this
         function only yields the "trusted local" locations to pre-check before
         delegating to that handler.
