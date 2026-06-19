@@ -122,3 +122,30 @@ class TestGetWriteCacheDir:
 
     def test_no_package_name_returns_root(self, no_scopesim_data, fake_home):
         assert cd.get_write_cache_dir() == fake_home
+
+
+class TestIncludeHomeCache:
+    def test_excludes_home_cache(self, fake_scopesim_data, fake_home):
+        dirs = list(
+            cd.iter_read_cache_dirs(
+                "spextra", [Path("/bundled")], include_home_cache=False
+            )
+        )
+        assert dirs == [fake_scopesim_data / "spextra", Path("/bundled")]
+        assert fake_home / "spextra" not in dirs
+
+    def test_find_skips_home_cache_when_excluded(
+        self, no_scopesim_data, fake_home
+    ):
+        # File only in the home cache -> not found when home cache excluded.
+        (fake_home / "spextra").mkdir(parents=True)
+        (fake_home / "spextra" / "x").write_text("x")
+        assert (
+            cd.find_cached_file(Path("x"), "spextra", include_home_cache=False)
+            is None
+        )
+        # ...but found with the default behaviour.
+        assert (
+            cd.find_cached_file(Path("x"), "spextra")
+            == fake_home / "spextra" / "x"
+        )

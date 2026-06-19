@@ -81,6 +81,8 @@ def _pkg_subdir(root: Path, package_name: str | None) -> Path:
 def iter_read_cache_dirs(
     package_name: str | None = None,
     extra_dirs: Iterable[Path] = (),
+    *,
+    include_home_cache: bool = True,
 ) -> Iterator[Path]:
     """Yield cache directories to read from, in priority order.
 
@@ -90,7 +92,7 @@ def iter_read_cache_dirs(
     2. Any `extra_dirs` supplied by the caller, e.g. a package's own bundled
        data directory (present in a source clone, possibly absent on PyPI).
     3. The ``.astar`` cache in the user's home directory, where previously
-       downloaded files are stored.
+       downloaded files are stored (unless ``include_home_cache`` is False).
 
     Directories are yielded whether or not they exist; callers check for the
     actual file (see ``find_cached_file``). Nothing is created here.
@@ -103,6 +105,13 @@ def iter_read_cache_dirs(
     extra_dirs : iterable of Path, optional
         Extra directories, inserted after ScopeSim_Data but before the home
         cache. Used for package-bundled data.
+    include_home_cache : bool, optional
+        Whether to yield the home cache as the last location (default True).
+        Set this to False when the home cache is managed by something else
+        that should own it -- e.g. a `pooch.Pooch` whose ``path`` is the home
+        cache and which does its own hash check there. In that case this
+        function only yields the "trusted local" locations to pre-check before
+        delegating to that handler.
 
     Yields
     ------
@@ -113,13 +122,16 @@ def iter_read_cache_dirs(
         yield _pkg_subdir(root, package_name)
     for extra in extra_dirs:
         yield Path(extra)
-    yield _pkg_subdir(HOME_CACHE, package_name)
+    if include_home_cache:
+        yield _pkg_subdir(HOME_CACHE, package_name)
 
 
 def find_cached_file(
     relpath: Path,
     package_name: str | None = None,
     extra_dirs: Iterable[Path] = (),
+    *,
+    include_home_cache: bool = True,
 ) -> Path | None:
     """Return the first existing ``cache_dir / relpath``, or None.
 
@@ -140,7 +152,8 @@ def find_cached_file(
         Full path to the located file, or None if not found anywhere.
     """
     relpath = Path(relpath)
-    for cache_dir in iter_read_cache_dirs(package_name, extra_dirs):
+    for cache_dir in iter_read_cache_dirs(
+            package_name, extra_dirs, include_home_cache=include_home_cache):
         if (candidate := cache_dir / relpath).is_file():
             return candidate
     return None
