@@ -32,7 +32,7 @@ flowchart TD
     end
     subgraph writing [get_write_cache_dir]
         direction TB
-        W0([store a download]) --> W1{SCOPESIM_DATA_CI_FLAG<br>set?}
+        W0([store a download]) --> W1{CI flag set?}
         W1 -- yes --> W2[write into<br>scopesim_data/PKG]
         W1 -- no --> W3[write into<br>~/.astar/PKG]
     end
@@ -159,7 +159,7 @@ def get_write_cache_dir(package_name: str | None = None) -> Path:
     Parameters
     ----------
     package_name : str or None, optional
-        Name of the A*V package, appended as a subfolder if given.
+        Name of the Astar package, appended as a subfolder if given.
 
     Returns
     -------

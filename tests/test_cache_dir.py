@@ -31,8 +31,8 @@ def fake_scopesim_data(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def clear_bundle_flag(monkeypatch):
-    """Ensure the write-bundle flag never leaks in from the environment."""
+def clear_sim_data_flag(monkeypatch):
+    """Ensure the sim data CI flag never leaks in from the environment."""
     monkeypatch.delenv(cd.SIM_DATA_CI_ENV, raising=False)
 
 
@@ -105,7 +105,7 @@ class TestGetWriteCacheDir:
         target = cd.get_write_cache_dir("spextra")
         assert target == fake_home / "spextra"
 
-    def test_bundle_flag_writes_to_scopesim_data(
+    def test_sim_data_flag_writes_to_scopesim_data(
         self, fake_scopesim_data, monkeypatch
     ):
         monkeypatch.setenv(cd.SIM_DATA_CI_ENV, "1")
@@ -113,7 +113,7 @@ class TestGetWriteCacheDir:
         assert target == fake_scopesim_data / "spextra"
         assert target.is_dir()
 
-    def test_bundle_flag_without_scopesim_data_raises(
+    def test_sim_data_flag_without_scopesim_data_raises(
         self, no_scopesim_data, monkeypatch
     ):
         monkeypatch.setenv(cd.SIM_DATA_CI_ENV, "1")
