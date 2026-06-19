@@ -24,7 +24,7 @@ flowchart TD
         R3 -- found --> RF
         R3 -- not found --> R4[look in<br>~/.astar/PKG]
         R4 -- found --> RF
-        R4 -- not found --> RN([return None -> download])
+        R4 -- not found --> RN([raise FileNotFoundError<br>-> download])
     end
     subgraph writing [get_write_cache_dir]
         direction TB
@@ -130,8 +130,9 @@ def find_cached_file(
     """Return the first existing ``cache_dir / relpath``, or None.
 
     Searches the directories from ``iter_read_cache_dirs`` in priority order.
-    A return value of None signals that the caller should download the file
-    and store it via ``get_write_cache_dir``.
+    If the file is not found, ``FileNotFoundError`` is raised, indicating that
+    the caller should download the file and store it via
+    ``get_write_cache_dir``.
 
     Parameters
     ----------
