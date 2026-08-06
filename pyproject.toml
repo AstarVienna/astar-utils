@@ -1,6 +1,6 @@
 [project]
 name = "astar-utils"
-version = "0.6.1a0"
+version = "0.7.0.dev0"
 description = "Contains commonly-used utilities for AstarVienna's projects."
 license = {text = "GPL-3.0-or-later"}
 authors = [
@@ -12,7 +12,7 @@ maintainers = [
 ]
 readme = "README.md"
 dynamic = [ "classifiers" ]
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.12,<3.15"
 dependencies = [
     "more-itertools (>=10.2.0,<11.0.0)",
     "pyyaml (>=6.0.3,<7.0.0)",
